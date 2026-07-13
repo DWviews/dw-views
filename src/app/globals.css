@@ -1,0 +1,297 @@
+@import "tailwindcss";
+
+:root {
+  --gads-blue: #1a73e8;
+  --gads-blue-dark: #1557b0;
+  --gads-blue-light: #e8f0fe;
+  --gads-sidebar: #f8f9fa;
+  --gads-border: #dadce0;
+  --gads-text: #202124;
+  --gads-text-secondary: #5f6368;
+  --gads-green: #1e8e3e;
+  --gads-red: #d93025;
+  --gads-yellow: #f9ab00;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Google Sans", "Roboto", Arial, sans-serif;
+  color: var(--gads-text);
+  background: #fff;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Google Ads scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #dadce0;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #bdc1c6;
+}
+
+/* Google Ads button styles */
+.gads-btn-primary {
+  background: var(--gads-blue);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.gads-btn-primary:hover {
+  background: var(--gads-blue-dark);
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3);
+}
+.gads-btn-primary:disabled {
+  background: #dadce0;
+  cursor: not-allowed;
+}
+
+.gads-btn-outline {
+  background: white;
+  color: var(--gads-blue);
+  border: 1px solid var(--gads-border);
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.gads-btn-outline:hover {
+  background: var(--gads-blue-light);
+  border-color: var(--gads-blue);
+}
+
+.gads-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--gads-border);
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.gads-input:focus {
+  border-color: var(--gads-blue);
+  box-shadow: 0 0 0 1px var(--gads-blue);
+}
+
+.gads-select {
+  padding: 8px 12px;
+  border: 1px solid var(--gads-border);
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  outline: none;
+}
+.gads-select:focus {
+  border-color: var(--gads-blue);
+}
+
+/* Status badges */
+.status-enabled {
+  color: var(--gads-green);
+  font-weight: 500;
+}
+.status-paused {
+  color: var(--gads-yellow);
+  font-weight: 500;
+}
+.status-removed {
+  color: var(--gads-red);
+  font-weight: 500;
+}
+
+/* Table styles */
+.gads-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.gads-table th {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--gads-border);
+  color: var(--gads-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  background: #f8f9fa;
+  position: sticky;
+  top: 0;
+}
+.gads-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f3f4;
+  white-space: nowrap;
+}
+.gads-table tr:hover td {
+  background: #f8f9fa;
+}
+
+/* Metric card */
+.metric-card {
+  background: white;
+  border: 1px solid var(--gads-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  min-width: 160px;
+}
+.metric-card .label {
+  font-size: 12px;
+  color: var(--gads-text-secondary);
+  margin-bottom: 4px;
+}
+.metric-card .value {
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--gads-text);
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Login hero SVG animations */
+@keyframes login-float {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-12px); opacity: 0.9; }
+}
+
+@keyframes login-pulse-glow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+@keyframes login-chart-draw {
+  from { stroke-dashoffset: 800; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes login-area-fade {
+  from { opacity: 0; }
+  to { opacity: 0.06; }
+}
+
+@keyframes login-dot-pop {
+  0%, 100% { r: 3; opacity: 0.5; }
+  50% { r: 5; opacity: 1; }
+}
+
+@keyframes login-flow {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes login-region-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+@keyframes login-ring-expand {
+  0%, 100% { r: 48; opacity: 0.3; }
+  50% { r: 54; opacity: 0.6; }
+}
+
+@keyframes login-logo-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); }
+  50% { box-shadow: 0 0 20px 4px rgba(255, 255, 255, 0.2); }
+}
+
+@keyframes login-metric-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-particle {
+  animation: login-float 4s ease-in-out infinite;
+}
+
+.login-orb-1 {
+  animation: login-pulse-glow 6s ease-in-out infinite;
+}
+
+.login-orb-2 {
+  animation: login-pulse-glow 8s ease-in-out infinite 2s;
+}
+
+.login-chart-line {
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+  animation: login-chart-draw 3s ease-out forwards;
+}
+
+.login-chart-area {
+  animation: login-area-fade 2s ease-out 1.5s forwards;
+  opacity: 0;
+}
+
+.login-chart-dot {
+  animation: login-dot-pop 2s ease-in-out infinite;
+}
+
+.login-flow-line {
+  animation: login-flow 6s linear infinite;
+}
+
+.login-region-node {
+  animation: login-region-pulse 3s ease-in-out infinite;
+}
+
+.login-region-ring {
+  animation: login-ring-expand 4s ease-in-out infinite;
+}
+
+.login-logo-pulse {
+  animation: login-logo-glow 3s ease-in-out infinite;
+}
+
+.login-metric-card {
+  animation: login-metric-in 0.6s ease-out both;
+}
+
+.login-metric-card:nth-child(1) { animation-delay: 0.1s; }
+.login-metric-card:nth-child(2) { animation-delay: 0.2s; }
+.login-metric-card:nth-child(3) { animation-delay: 0.3s; }
+.login-metric-card:nth-child(4) { animation-delay: 0.4s; }
