@@ -109,12 +109,12 @@ export default function LoginPage() {
             </a>
           </div>
 
-          <div className="mt-8 p-4 bg-[#F2F9FC] rounded-lg text-sm text-[#12377A] border border-[#A8D5E5]">
-            <strong>預設管理員帳號：</strong>
+          <div className="mt-8 p-4 bg-[#F2F9FC] rounded-lg text-sm text-[#12377A] border border-[#A8D5E5] text-center">
+            中小企業用戶請聯絡
             <br />
-            帳號：ADMIN ACC ／ 密碼：admin123
+            Diamond Wise 銷售經理
             <br />
-            <span className="text-[#858481]">登入後可上傳 01-06.csv 產生月度報告</span>
+            領取帳密
           </div>
 
           <p className="mt-8 text-center text-xs text-[#9aa0a6] lg:hidden">
