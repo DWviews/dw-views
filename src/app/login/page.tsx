@@ -102,13 +102,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-[#5f6368]">
-            還沒有帳號？{" "}
-            <a href="/register" className="text-[#1a73e8] hover:underline font-medium">
-              建立帳號
-            </a>
-          </div>
-
           <div className="mt-8 p-4 bg-[#F2F9FC] rounded-lg text-sm text-[#12377A] border border-[#A8D5E5] text-center">
             中小企業用戶請聯絡
             <br />
