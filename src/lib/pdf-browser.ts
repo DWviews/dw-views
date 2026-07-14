@@ -1,10 +1,18 @@
 import type { Browser, Page } from "puppeteer-core";
 
+/**
+ * Remote chromium pack for @sparticuz/chromium-min.
+ * Keeps the Vercel deploy under size limits; binary is downloaded at runtime to /tmp.
+ */
+const CHROMIUM_PACK_URL =
+  process.env.CHROMIUM_PACK_URL ||
+  "https://github.com/Sparticuz/chromium/releases/download/v149.0.0/chromium-v149.0.0-pack.x64.tar";
+
 export async function launchPdfBrowser(): Promise<Browser> {
   const puppeteer = (await import("puppeteer-core")).default;
-  const chromium = (await import("@sparticuz/chromium")).default;
+  const chromium = (await import("@sparticuz/chromium-min")).default;
 
-  // Smaller footprint on serverless; PDF export does not need WebGL.
+  // Smaller footprint; PDF export does not need WebGL.
   chromium.setGraphicsMode = false;
 
   return puppeteer.launch({
@@ -17,7 +25,7 @@ export async function launchPdfBrowser(): Promise<Browser> {
       height: 720,
       deviceScaleFactor: 1,
     },
-    executablePath: await chromium.executablePath(),
+    executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
     headless: "shell",
   });
 }
@@ -37,5 +45,5 @@ export async function renderHtmlToPdf(
   });
   await page.emulateMediaType("print");
   const pdf = await page.pdf(options);
-  return new Uint8Array(pdf);
+  return pdf instanceof Uint8Array ? pdf : new Uint8Array(pdf);
 }

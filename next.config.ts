@@ -22,7 +22,7 @@ const gitVersion = resolveGitVersion();
 const nextConfig: NextConfig = {
   serverExternalPackages: [
     "playwright",
-    "@sparticuz/chromium",
+    "@sparticuz/chromium-min",
     "puppeteer-core",
   ],
   env: {

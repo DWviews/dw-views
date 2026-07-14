@@ -10,6 +10,7 @@ import { launchPdfBrowser, renderHtmlToPdf } from "@/lib/pdf-browser";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+export const dynamic = "force-dynamic";
 
 const PDF_OPTIONS = {
   format: "A4" as const,
@@ -94,11 +95,12 @@ export async function GET(
         // ignore close errors
       }
     }
+    const detail = error instanceof Error ? error.message : String(error);
     console.error("PDF export error:", error);
     return NextResponse.json(
       {
-        error:
-          "PDF 匯出失敗。若在本機可再試一次；若在線上環境請稍後重試或聯絡管理員。",
+        error: "PDF 匯出失敗，請稍後再試",
+        detail: detail.slice(0, 300),
       },
       { status: 500 }
     );
