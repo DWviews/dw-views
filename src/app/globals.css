@@ -600,3 +600,160 @@ body {
 .login-metric-card:nth-child(2) { animation-delay: 0.2s; }
 .login-metric-card:nth-child(3) { animation-delay: 0.3s; }
 .login-metric-card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes login-grid-drift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(80px, 80px); }
+}
+
+@keyframes login-orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  50% { transform: translate(-12px, 10px) scale(1.06); opacity: 0.55; }
+}
+
+@keyframes login-bar-pulse {
+  0%, 100% { transform: scaleY(0.75); opacity: 0.35; }
+  50% { transform: scaleY(1); opacity: 0.75; }
+}
+
+@keyframes login-chart-dash {
+  from { stroke-dashoffset: 120; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes login-orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes login-orbit-spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes login-region-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes login-signal-expand {
+  0% { transform: scale(0.5); opacity: 0.5; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes login-network-pulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.55; }
+}
+
+@keyframes login-data-packet-glow {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+@keyframes login-kpi-float {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50% { transform: translateY(-6px); opacity: 0.9; }
+}
+
+@keyframes login-particle-drift {
+  0%, 100% { transform: translate(0, 0); opacity: 0.35; }
+  33% { transform: translate(10px, -14px); opacity: 0.85; }
+  66% { transform: translate(-6px, -8px); opacity: 0.5; }
+}
+
+@keyframes login-stream-pulse {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.1; }
+}
+
+@keyframes login-hero-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes login-feature-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.login-grid-drift {
+  animation: login-grid-drift 24s linear infinite;
+}
+
+.login-orb-3 {
+  animation: login-orb-float 7s ease-in-out infinite 1s;
+}
+
+.login-bar {
+  transform-origin: center bottom;
+  animation: login-bar-pulse 2.4s ease-in-out infinite;
+}
+
+.login-chart-line-secondary {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: login-chart-dash 4s ease-in-out infinite alternate;
+}
+
+.login-orbit-ring {
+  transform-origin: center;
+  animation: login-orbit-spin 20s linear infinite;
+}
+
+.login-orbit-ring-reverse {
+  transform-origin: center;
+  animation: login-orbit-spin-reverse 16s linear infinite;
+}
+
+.login-orbit-dot-slow {
+  animation: login-dot-pop 3s ease-in-out infinite;
+}
+
+.login-region-sweep {
+  transform-origin: center;
+  animation: login-region-sweep 6s linear infinite;
+}
+
+.login-signal-ring {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: login-signal-expand 2.8s ease-out infinite;
+}
+
+.login-network-line {
+  animation: login-network-pulse 3s ease-in-out infinite;
+}
+
+.login-data-packet {
+  animation: login-data-packet-glow 1.6s ease-in-out infinite;
+}
+
+.login-data-packet-delayed {
+  animation-delay: 1s;
+}
+
+.login-kpi-badge {
+  animation: login-kpi-float 4s ease-in-out infinite;
+}
+
+.login-particle-drift {
+  animation: login-particle-drift 5s ease-in-out infinite;
+}
+
+.login-stream {
+  animation: login-stream-pulse 4s ease-in-out infinite;
+}
+
+.login-hero-fade {
+  animation: login-hero-fade-in 0.8s ease-out both;
+}
+
+.login-feature-card {
+  animation: login-metric-in 0.7s ease-out both, login-feature-float 5s ease-in-out infinite;
+}
+
+.login-feature-card:nth-child(1) { animation-delay: 0.5s, 0s; }
+.login-feature-card:nth-child(2) { animation-delay: 0.6s, 0.8s; }
+.login-feature-card:nth-child(3) { animation-delay: 0.7s, 1.6s; }
+.login-feature-card:nth-child(4) { animation-delay: 0.8s, 2.4s; }
