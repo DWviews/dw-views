@@ -32,13 +32,18 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = getSupabaseAdmin();
-  const { data: existing } = await supabase
+
+  const { data: existingUsername } = await supabase
     .from("users")
     .select("id")
-    .or(`username.eq.${username},email.eq.${email}`)
+    .eq("username", username)
     .maybeSingle();
 
-  if (existing) {
+  const { data: existingEmail } = existingUsername
+    ? { data: null }
+    : await supabase.from("users").select("id").eq("email", email).maybeSingle();
+
+  if (existingUsername || existingEmail) {
     return NextResponse.json({ error: "帳號已存在" }, { status: 409 });
   }
 

@@ -1,16 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import LoginHero from "@/components/login/LoginHero";
 import { copyrightLine } from "@/lib/app-version";
+import type { SessionUser } from "@/lib/auth";
+
+const roleLabels: Record<SessionUser["role"], string> = {
+  admin: "管理員",
+  editor: "編輯者",
+  viewer: "檢視者",
+};
 
 export default function LoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [existingUser, setExistingUser] = useState<SessionUser | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then(async (res) => {
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.user as SessionUser | null;
+      })
+      .then((user) => setExistingUser(user))
+      .catch(() => setExistingUser(null));
+  }, []);
+
+  async function handleLogoutExisting() {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/session", { method: "DELETE" });
+      setExistingUser(null);
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -21,6 +49,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ username, password }),
       });
 
@@ -30,7 +59,8 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      // 完整重新載入，避免 Next.js 沿用上一個帳號的快取版面
+      window.location.assign("/dashboard");
     } catch {
       setError("連線錯誤，請稍後再試");
     } finally {
@@ -59,6 +89,27 @@ export default function LoginPage() {
           <p className="text-[#5f6368] text-sm mb-8">
             使用您的 DW VIEWS 帳號登入
           </p>
+
+          {existingUser && (
+            <div className="mb-5 rounded-lg border border-[#fbbc04] bg-[#fff8e1] px-4 py-3 text-sm text-[#12377A]">
+              <p>
+                目前已以{" "}
+                <span className="font-medium">{existingUser.displayName}</span>（
+                {roleLabels[existingUser.role]}）登入。
+              </p>
+              <p className="text-xs text-[#858481] mt-1">
+                若要切換帳號，請先登出再使用其他帳密登入。
+              </p>
+              <button
+                type="button"
+                onClick={handleLogoutExisting}
+                disabled={loggingOut}
+                className="mt-3 text-xs border border-[#12377A] text-[#12377A] px-3 py-1.5 rounded hover:bg-[#e8f0fe] disabled:opacity-50"
+              >
+                {loggingOut ? "登出中..." : "登出目前帳號"}
+              </button>
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>

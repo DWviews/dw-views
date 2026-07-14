@@ -67,3 +67,33 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
 });
 
 export { COOKIE_NAME };
+
+/** 以使用者名稱或 Email 安全查詢帳號（避免 .or() 字串拼接問題） */
+export async function findUserByLogin(
+  supabase: ReturnType<typeof import("./supabase").getSupabaseAdmin>,
+  login: string
+) {
+  const trimmed = login.trim();
+  if (!trimmed) return null;
+
+  const fields =
+    "id, username, email, password_hash, role, display_name, is_active";
+
+  const { data: byUsername, error: usernameError } = await supabase
+    .from("users")
+    .select(fields)
+    .eq("username", trimmed)
+    .maybeSingle();
+
+  if (usernameError) throw usernameError;
+  if (byUsername) return byUsername;
+
+  const { data: byEmail, error: emailError } = await supabase
+    .from("users")
+    .select(fields)
+    .eq("email", trimmed)
+    .maybeSingle();
+
+  if (emailError) throw emailError;
+  return byEmail;
+}

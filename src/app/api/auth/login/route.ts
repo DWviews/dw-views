@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { verifyPassword, createToken, COOKIE_NAME } from "@/lib/auth";
+import {
+  verifyPassword,
+  createToken,
+  COOKIE_NAME,
+  findUserByLogin,
+} from "@/lib/auth";
 import { seedDatabase } from "@/lib/seed";
+
+function sessionCookieOptions(maxAge: number) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    maxAge,
+    path: "/",
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,13 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = getSupabaseAdmin();
-    const { data: user, error } = await supabase
-      .from("users")
-      .select("id, username, email, password_hash, role, display_name, is_active")
-      .or(`username.eq.${username},email.eq.${username}`)
-      .maybeSingle();
-
-    if (error) throw error;
+    const user = await findUserByLogin(supabase, username);
 
     if (!user) {
       return NextResponse.json(
@@ -59,13 +68,9 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ user: sessionUser });
 
-    response.cookies.set(COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    // 先清除舊 session，避免殘留上一個帳號的 cookie
+    response.cookies.set(COOKIE_NAME, "", sessionCookieOptions(0));
+    response.cookies.set(COOKIE_NAME, token, sessionCookieOptions(60 * 60 * 24 * 7));
 
     return response;
   } catch (error) {

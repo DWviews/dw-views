@@ -45,7 +45,7 @@ export default function DashboardShell({
   async function handleLogout() {
     clearDashboardReturnPath();
     await fetch("/api/auth/session", { method: "DELETE" });
-    router.push("/login");
+    window.location.assign("/login");
   }
 
   const isAdmin = user.role === "admin";
