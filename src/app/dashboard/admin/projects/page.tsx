@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { apiProjectPath, projectPagePath } from "@/lib/project-api";
+import ClientAccountPanel from "@/components/dashboard/ClientAccountPanel";
 
 interface Project {
   id: number;
@@ -514,7 +515,7 @@ export default function AdminProjectsPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-[#12377A]">專案管理</h1>
-          <p className="text-sm text-[#858481]">管理專案月份、上傳 CSV、Approve Views 權限</p>
+          <p className="text-sm text-[#858481]">管理客戶帳戶、專案月份、上傳 CSV、Approve Views 權限</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -567,8 +568,14 @@ export default function AdminProjectsPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-4 space-y-4">
           {selected ? (
+            <>
+              <ClientAccountPanel
+                slug={selected.slug}
+                projectName={selected.name}
+                canEdit
+              />
             <div className="bg-white border border-[#dadce0] rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-[#12377A]">{selected.name} 月份</h3>
@@ -624,6 +631,7 @@ export default function AdminProjectsPage() {
                 ))}
               </div>
             </div>
+            </>
           ) : (
             <div className="bg-white border border-[#dadce0] rounded-lg p-8 text-center text-sm text-[#858481]">
               請選擇專案

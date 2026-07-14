@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar, CheckCircle, Clock, Lock } from "lucide-react";
 import { apiProjectPath, fetchProjectJson, projectPagePath, normalizeProjectSlug } from "@/lib/project-api";
+import ClientAccountPanel from "@/components/dashboard/ClientAccountPanel";
 
 interface ProjectMonth {
   id: number;
@@ -27,6 +28,7 @@ export default function ProjectMonthPickerPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [months, setMonths] = useState<ProjectMonth[]>([]);
   const [isViewer, setIsViewer] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -44,6 +46,7 @@ export default function ProjectMonthPickerPage() {
         setProject(data.project);
         setMonths(data.months || []);
         setIsViewer(sessionData.user?.role === "viewer");
+        setIsAdmin(sessionData.user?.role === "admin");
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "無法載入專案");
@@ -84,6 +87,15 @@ export default function ProjectMonthPickerPage() {
         <h1 className="text-2xl font-bold text-[#12377A]">{project.name}</h1>
         <p className="text-sm text-[#858481] mt-1">{project.campaign_name}</p>
         <p className="text-sm text-[#858481] mt-2">請選擇要查看的報告月份</p>
+      </div>
+
+      <div className="mb-6">
+        <ClientAccountPanel
+          slug={slug}
+          projectName={project.name}
+          canEdit={isAdmin}
+          compact
+        />
       </div>
 
       {months.length === 0 ? (

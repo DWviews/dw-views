@@ -21,6 +21,15 @@ export interface ProjectRow {
   date_range_end: string | null;
   status: "draft" | "ready";
   created_by: number;
+  client_id: string | null;
+  company_name: string | null;
+  contract_start_date: string | null;
+  contract_end_date: string | null;
+  monthly_budget: number | null;
+  account_manager: string | null;
+  service_tier: "basic" | "professional" | "enterprise" | "custom" | null;
+  contract_notes: string | null;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }

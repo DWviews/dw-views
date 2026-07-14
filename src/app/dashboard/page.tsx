@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, FileText, CheckCircle, Clock } from "lucide-react";
 import { projectPagePath } from "@/lib/project-api";
+import { ClientAccountAvatar } from "@/components/dashboard/ClientAccountPanel";
+import {
+  formatBudget,
+  getContractStatus,
+  CONTRACT_STATUS_LABELS,
+} from "@/lib/client-account";
 
 interface Project {
   id: number;
@@ -13,6 +19,13 @@ interface Project {
   month_count: number;
   visible_month_count: number;
   creator_name: string;
+  company_name?: string | null;
+  client_id?: string | null;
+  account_manager?: string | null;
+  monthly_budget?: number | null;
+  logo_url?: string | null;
+  contract_start_date?: string | null;
+  contract_end_date?: string | null;
 }
 
 export default function DashboardPage() {
@@ -95,33 +108,58 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {projects.map((p) => (
+          {projects.map((p) => {
+            const displayName = p.company_name || p.name;
+            const contractStatus = getContractStatus(
+              p.contract_start_date,
+              p.contract_end_date
+            );
+            const statusMeta = contractStatus
+              ? CONTRACT_STATUS_LABELS[contractStatus]
+              : null;
+
+            return (
             <Link
               key={p.slug}
               href={projectPagePath(p.slug)}
               className="bg-white border border-[#dadce0] rounded-lg p-4 sm:p-5 hover:shadow-md transition-shadow flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between group"
             >
               <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg shrink-0"
-                  style={{ background: "linear-gradient(135deg, #12377A, #3D8BC1)" }}
-                >
-                  {p.name.charAt(0)}
-                </div>
+                <ClientAccountAvatar
+                  logoUrl={p.logo_url}
+                  name={displayName}
+                  size={48}
+                />
                 <div>
                   <h3 className="text-base font-semibold text-[#12377A] group-hover:text-[#3D8BC1] break-words">
-                    {p.name} Google Ads Monthly Report
+                    {displayName} Google Ads Monthly Report
                   </h3>
                   <p className="text-sm text-[#858481]">{p.campaign_name}</p>
-                  <p className="text-xs text-[#858481] mt-0.5">
-                    {isViewer
-                      ? `${p.visible_month_count} 份可查看報告`
-                      : `${p.visible_month_count} 個可查看月份`}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#858481] mt-0.5">
+                    {p.client_id && <span>客戶編號 {p.client_id}</span>}
+                    {p.account_manager && (
+                      <span>客戶經理 {p.account_manager}</span>
+                    )}
+                    {p.monthly_budget != null && (
+                      <span>月預算 {formatBudget(p.monthly_budget)}</span>
+                    )}
+                    <span>
+                      {isViewer
+                        ? `${p.visible_month_count} 份可查看報告`
+                        : `${p.visible_month_count} 個可查看月份`}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
+                  {statusMeta && !isViewer && (
+                    <div
+                      className={`inline-flex text-[10px] font-medium px-2 py-0.5 rounded-full mb-1 ${statusMeta.className}`}
+                    >
+                      {statusMeta.label}
+                    </div>
+                  )}
                   {isViewer ? (
                     <div className="flex items-center gap-1 text-xs">
                       <CheckCircle size={14} className="text-[#1e8e3e]" />
@@ -153,7 +191,8 @@ export default function DashboardPage() {
                 <ChevronRight className="text-[#A8D5E5] group-hover:text-[#3D8BC1]" size={20} />
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
