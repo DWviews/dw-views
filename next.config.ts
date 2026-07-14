@@ -20,7 +20,11 @@ function resolveGitVersion(): string {
 const gitVersion = resolveGitVersion();
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["playwright"],
+  serverExternalPackages: [
+    "playwright",
+    "@sparticuz/chromium",
+    "puppeteer-core",
+  ],
   env: {
     NEXT_PUBLIC_APP_VERSION: gitVersion,
   },
