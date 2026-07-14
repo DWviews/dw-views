@@ -503,18 +503,16 @@ export default function AdminProjectsPage() {
   }, [selectedSlug, selectedMonthId, months]);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-1 text-sm text-[#858481] hover:text-[#12377A] mb-4"
-      >
+    <div className="dw-page dw-page-wide">
+      <Link href="/dashboard" className="dw-back-link mb-4">
         <ArrowLeft size={14} />
         返回首頁
       </Link>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-[#12377A]">專案管理</h1>
+          <p className="dw-section-label mb-1">系統管理</p>
+          <h1 className="text-xl font-semibold text-[#12377A]">專案管理</h1>
           <p className="text-sm text-[#858481]">管理客戶帳戶、專案月份、上傳 CSV、Approve Views 權限</p>
         </div>
         <button

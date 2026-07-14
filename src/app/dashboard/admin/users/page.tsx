@@ -111,10 +111,11 @@ export default function UsersAdminPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="dw-page dw-page-wide">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-xl font-normal text-[#202124]">帳號管理</h1>
+          <p className="dw-section-label mb-1">系統管理</p>
+          <h1 className="text-xl font-semibold text-[#12377A]">帳號管理</h1>
           <p className="text-sm text-[#5f6368] mt-1">
             管理系統使用者帳號與權限設定
           </p>
@@ -141,7 +142,7 @@ export default function UsersAdminPage() {
         })}
       </div>
 
-      <div className="border border-[#dadce0] rounded-lg overflow-x-auto">
+      <div className="dw-card overflow-x-auto">
         <table className="gads-table">
           <thead>
             <tr>

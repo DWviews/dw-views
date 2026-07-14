@@ -251,6 +251,97 @@ body {
   display: none;
 }
 
+/* DW VIEWS app shell */
+.dw-page {
+  padding: 1rem 1rem 2rem;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+@media (min-width: 640px) {
+  .dw-page {
+    padding: 1.5rem 1.5rem 2.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .dw-page {
+    padding: 2rem 2rem 3rem;
+  }
+}
+
+.dw-page-wide {
+  max-width: 72rem;
+}
+
+.dw-card {
+  background: white;
+  border: 1px solid var(--gads-border);
+  border-radius: 10px;
+}
+
+.dw-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gads-text-secondary);
+}
+
+.dw-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: #e8eaed;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .dw-meta-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.dw-meta-item {
+  padding: 10px 14px;
+  background: #fafbfc;
+  min-width: 0;
+}
+
+.dw-meta-span {
+  grid-column: 1 / -1;
+}
+
+.dw-meta-label {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--gads-text-secondary);
+  margin-bottom: 2px;
+}
+
+.dw-meta-value {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #12377a;
+  word-break: break-word;
+}
+
+.dw-meta-span {
+  grid-column: 1 / -1;
+}
+
+.dw-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 13px;
+  color: var(--gads-text-secondary);
+  transition: color 0.15s;
+}
+.dw-back-link:hover {
+  color: #12377a;
+}
+
 /* Login hero SVG animations */
 @keyframes login-float {
   0%, 100% { transform: translateY(0); opacity: 0.4; }

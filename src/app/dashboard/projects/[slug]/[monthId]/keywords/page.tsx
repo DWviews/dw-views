@@ -174,7 +174,7 @@ export default function ProjectKeywordsPage() {
       <div className="max-w-[1500px] mx-auto">
         <Link
           href={projectPagePath(slug, `${monthId}/ads`)}
-          className="inline-flex items-center gap-1 text-sm text-[#5f6368] hover:text-[#1a73e8] mb-4 min-h-10"
+          className="dw-back-link mb-4 min-h-10"
         >
           <ArrowLeft size={14} />
           返回儀表板

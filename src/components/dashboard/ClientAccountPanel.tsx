@@ -29,6 +29,7 @@ interface ClientAccountPanelProps {
   slug: string;
   projectName: string;
   canEdit: boolean;
+  /** 專案頁精簡模式：更緊湊的客戶資料展示 */
   compact?: boolean;
 }
 
@@ -158,13 +159,14 @@ export default function ClientAccountPanel({
   const statusMeta = contractStatus
     ? CONTRACT_STATUS_LABELS[contractStatus]
     : null;
-  const displayName = account.companyName || projectName;
+  const companyName = account.companyName || projectName;
+  const logoUrl = canEdit ? form.logoUrl : account.logoUrl;
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-[#dadce0] bg-white p-4">
+      <div className={`dw-card ${compact ? "p-4" : "p-5"}`}>
         <div className="h-4 w-32 bg-[#f1f3f4] rounded animate-pulse mb-3" />
-        <div className="h-20 bg-[#f8f9fa] rounded animate-pulse" />
+        <div className="h-16 bg-[#f8f9fa] rounded animate-pulse" />
       </div>
     );
   }
@@ -174,39 +176,47 @@ export default function ClientAccountPanel({
   }
 
   return (
-    <div
-      className={`rounded-lg border border-[#dadce0] bg-white ${
-        compact ? "p-4" : "p-5"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="flex items-start gap-3 min-w-0">
+    <div className={`dw-card ${compact ? "p-4" : "p-5"}`}>
+      <div
+        className={`flex gap-3 min-w-0 ${
+          compact
+            ? "flex-row items-center justify-between mb-3"
+            : "flex-col sm:flex-row sm:items-start sm:justify-between mb-4"
+        }`}
+      >
+        <div className="flex items-center gap-3 min-w-0">
           <LogoPreview
-            logoUrl={canEdit ? form.logoUrl : account.logoUrl}
-            fallback={displayName}
-            size={compact ? 44 : 52}
+            logoUrl={logoUrl}
+            fallback={companyName}
+            size={compact ? 40 : 48}
           />
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm font-semibold text-[#12377A]">
-                客戶帳戶資料
-              </h3>
-              {statusMeta && (
-                <span
-                  className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${statusMeta.className}`}
-                >
-                  <BadgeCheck size={10} />
-                  {statusMeta.label}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-[#858481] mt-0.5">
-              {canEdit
-                ? "管理客戶合約資訊與品牌標誌，Viewer 帳號僅可檢視"
-                : "客戶合約與服務資訊"}
-            </p>
+            <p className="dw-section-label mb-1">客戶帳戶</p>
+            <h3 className="text-sm sm:text-base font-semibold text-[#12377A] truncate">
+              {companyName}
+            </h3>
+            {!compact && (
+              <p className="text-xs text-[#858481] mt-0.5">
+                {canEdit
+                  ? "管理合約資訊與品牌標誌"
+                  : "合約與服務資訊摘要"}
+              </p>
+            )}
+            {compact && account.clientId && (
+              <p className="text-xs text-[#858481] mt-0.5">
+                客戶編號 {account.clientId}
+              </p>
+            )}
           </div>
         </div>
+        {statusMeta && (
+          <span
+            className={`inline-flex items-center gap-1 text-[10px] font-medium px-2.5 py-1 rounded-full shrink-0 ${statusMeta.className}`}
+          >
+            <BadgeCheck size={10} />
+            {statusMeta.label}
+          </span>
+        )}
       </div>
 
       {canEdit ? (
@@ -218,20 +228,15 @@ export default function ClientAccountPanel({
           onLogoUpload={handleLogoUpload}
           onLogoRemove={handleLogoRemove}
           uploadingLogo={uploadingLogo}
-          compact={compact}
         />
       ) : hasClientAccountData(account) ? (
-        <ReadonlyView account={account} displayName={displayName} compact={compact} />
+        <ReadonlyView account={account} companyName={companyName} compact={compact} />
       ) : (
         <p className="text-xs text-[#858481]">尚未設定客戶帳戶資料</p>
       )}
 
-      {message && (
-        <p className="mt-3 text-xs text-[#1e8e3e]">{message}</p>
-      )}
-      {error && (
-        <p className="mt-3 text-xs text-[#d93025]">{error}</p>
-      )}
+      {message && <p className="mt-3 text-xs text-[#1e8e3e]">{message}</p>}
+      {error && <p className="mt-3 text-xs text-[#d93025]">{error}</p>}
     </div>
   );
 }
@@ -279,7 +284,6 @@ function AdminForm({
   onLogoUpload,
   onLogoRemove,
   uploadingLogo,
-  compact,
 }: {
   form: ClientAccount;
   setForm: React.Dispatch<React.SetStateAction<ClientAccount>>;
@@ -288,15 +292,10 @@ function AdminForm({
   onLogoUpload: (file: File | null) => void;
   onLogoRemove: () => void;
   uploadingLogo: boolean;
-  compact?: boolean;
 }) {
   return (
     <div className="space-y-4">
-      <div
-        className={`grid gap-3 ${
-          compact ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
-        }`}
-      >
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="客戶編號" icon={FileText}>
           <input
             className="gads-input"
@@ -307,7 +306,7 @@ function AdminForm({
             }
           />
         </Field>
-        <Field label="公司名稱" icon={Building2}>
+        <Field label="公司名稱" icon={Building2} className="sm:col-span-2">
           <input
             className="gads-input"
             placeholder="客戶公司全名"
@@ -378,7 +377,7 @@ function AdminForm({
             }
           />
         </Field>
-        <Field label="服務方案" icon={BadgeCheck} className={compact ? "" : "sm:col-span-2"}>
+        <Field label="服務方案" icon={BadgeCheck}>
           <select
             className="gads-input"
             value={form.serviceTier ?? ""}
@@ -397,9 +396,9 @@ function AdminForm({
             ))}
           </select>
         </Field>
-        <Field label="合約備註" icon={FileText} className={compact ? "" : "sm:col-span-2"}>
+        <Field label="合約備註" icon={FileText} className="sm:col-span-2 lg:col-span-3">
           <textarea
-            className="gads-input min-h-[72px]"
+            className="gads-input min-h-[64px]"
             placeholder="特殊條款、計費週期、服務範圍等"
             value={form.contractNotes ?? ""}
             onChange={(e) =>
@@ -412,43 +411,41 @@ function AdminForm({
         </Field>
       </div>
 
-      <div className="rounded-lg border border-dashed border-[#dadce0] bg-[#f8f9fa] p-3">
-        <div className="flex items-center justify-between gap-3 mb-2">
-          <div>
-            <div className="text-xs font-medium text-[#12377A]">品牌標誌</div>
-            <div className="text-[10px] text-[#858481]">
-              PNG / JPEG / WebP / SVG，最大 512 KB
-            </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-dashed border-[#dadce0] bg-[#fafbfc] px-3 py-2.5">
+        <div>
+          <div className="text-xs font-medium text-[#12377A]">品牌標誌</div>
+          <div className="text-[10px] text-[#858481]">
+            PNG / JPEG / WebP / SVG，最大 512 KB
           </div>
-          <div className="flex items-center gap-2">
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                className="hidden"
-                disabled={uploadingLogo}
-                onChange={(e) => {
-                  onLogoUpload(e.target.files?.[0] || null);
-                  e.target.value = "";
-                }}
-              />
-              <span className="inline-flex items-center gap-1 text-xs border border-[#12377A] text-[#12377A] px-3 py-1.5 rounded cursor-pointer hover:bg-[#e8f0fe]">
-                <ImagePlus size={12} />
-                {uploadingLogo ? "處理中..." : "上傳標誌"}
-              </span>
-            </label>
-            {form.logoUrl && (
-              <button
-                type="button"
-                onClick={onLogoRemove}
-                disabled={uploadingLogo}
-                className="inline-flex items-center gap-1 text-xs text-[#d93025] border border-[#d93025] px-3 py-1.5 rounded disabled:opacity-50"
-              >
-                <Trash2 size={12} />
-                移除
-              </button>
-            )}
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              className="hidden"
+              disabled={uploadingLogo}
+              onChange={(e) => {
+                onLogoUpload(e.target.files?.[0] || null);
+                e.target.value = "";
+              }}
+            />
+            <span className="inline-flex items-center gap-1 text-xs border border-[#12377A] text-[#12377A] px-3 py-1.5 rounded cursor-pointer hover:bg-[#e8f0fe]">
+              <ImagePlus size={12} />
+              {uploadingLogo ? "處理中..." : "上傳標誌"}
+            </span>
+          </label>
+          {form.logoUrl && (
+            <button
+              type="button"
+              onClick={onLogoRemove}
+              disabled={uploadingLogo}
+              className="inline-flex items-center gap-1 text-xs text-[#d93025] border border-[#d93025] px-3 py-1.5 rounded disabled:opacity-50"
+            >
+              <Trash2 size={12} />
+              移除
+            </button>
+          )}
         </div>
       </div>
 
@@ -467,55 +464,51 @@ function AdminForm({
 
 function ReadonlyView({
   account,
-  displayName,
+  companyName,
   compact,
 }: {
   account: ClientAccount;
-  displayName: string;
+  companyName: string;
   compact?: boolean;
 }) {
-  const items = [
-    { label: "客戶編號", value: account.clientId },
-    { label: "公司名稱", value: account.companyName || displayName },
-    {
-      label: "合約生效日",
-      value: formatContractDate(account.contractStartDate),
-    },
-    {
-      label: "合約到期日",
-      value: formatContractDate(account.contractEndDate),
-    },
-    {
-      label: "每月媒體預算",
-      value: formatBudget(account.monthlyBudget),
-    },
-    { label: "負責客戶經理", value: account.accountManager },
-    {
-      label: "服務方案",
-      value: serviceTierLabel(account.serviceTier),
-    },
+  const contractPeriod =
+    account.contractStartDate || account.contractEndDate
+      ? `${formatContractDate(account.contractStartDate)} — ${formatContractDate(account.contractEndDate)}`
+      : "—";
+
+  const items: { label: string; value: string; span?: boolean }[] = [
+    ...(compact ? [] : [{ label: "客戶編號", value: account.clientId || "—" }]),
+    { label: "合約期間", value: contractPeriod },
+    { label: "每月媒體預算", value: formatBudget(account.monthlyBudget) },
+    { label: "負責客戶經理", value: account.accountManager || "—" },
+    { label: "服務方案", value: serviceTierLabel(account.serviceTier) },
   ];
 
+  if (!compact && account.companyName && account.companyName !== companyName) {
+    items.unshift({
+      label: "公司名稱",
+      value: account.companyName,
+      span: true,
+    });
+  }
+
   return (
-    <div className="space-y-3">
-      <div
-        className={`grid gap-3 ${
-          compact ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
-        }`}
-      >
+    <div>
+      <div className="dw-meta-grid">
         {items.map((item) => (
-          <div key={item.label} className="rounded-lg bg-[#f8f9fa] px-3 py-2.5">
-            <div className="text-[10px] text-[#858481]">{item.label}</div>
-            <div className="text-sm font-medium text-[#12377A] mt-0.5 break-words">
-              {item.value || "—"}
-            </div>
+          <div
+            key={item.label}
+            className={`dw-meta-item${item.span ? " dw-meta-span" : ""}`}
+          >
+            <div className="dw-meta-label">{item.label}</div>
+            <div className="dw-meta-value">{item.value}</div>
           </div>
         ))}
       </div>
       {account.contractNotes && (
-        <div className="rounded-lg bg-[#f8f9fa] px-3 py-2.5">
-          <div className="text-[10px] text-[#858481]">合約備註</div>
-          <div className="text-sm text-[#12377A] mt-0.5 whitespace-pre-wrap">
+        <div className="mt-3 rounded-lg border border-[#e8eaed] bg-[#fafbfc] px-3 py-2.5">
+          <div className="dw-meta-label mb-1">合約備註</div>
+          <div className="text-sm text-[#12377A] whitespace-pre-wrap leading-relaxed">
             {account.contractNotes}
           </div>
         </div>

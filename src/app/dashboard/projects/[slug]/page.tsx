@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, CheckCircle, Clock, Lock } from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle, Clock, Lock, FileText } from "lucide-react";
 import { apiProjectPath, fetchProjectJson, projectPagePath, normalizeProjectSlug } from "@/lib/project-api";
 import ClientAccountPanel from "@/components/dashboard/ClientAccountPanel";
 
@@ -64,7 +64,7 @@ export default function ProjectMonthPickerPage() {
 
   if (error || !project) {
     return (
-      <div className="p-8 text-center">
+      <div className="dw-page text-center">
         <p className="text-[#d93025]">{error || "專案不存在"}</p>
         <Link href="/dashboard" className="text-[#12377A] text-sm mt-2 inline-block hover:underline">
           返回首頁
@@ -74,104 +74,118 @@ export default function ProjectMonthPickerPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-1 text-sm text-[#858481] hover:text-[#12377A] mb-4"
-      >
+    <div className="dw-page">
+      <Link href="/dashboard" className="dw-back-link mb-4">
         <ArrowLeft size={14} />
         返回專案列表
       </Link>
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#12377A]">{project.name}</h1>
+      <header className="mb-5">
+        <p className="dw-section-label mb-1">專案報告</p>
+        <h1 className="text-xl sm:text-2xl font-semibold text-[#12377A]">
+          {project.name}
+        </h1>
         <p className="text-sm text-[#858481] mt-1">{project.campaign_name}</p>
-        <p className="text-sm text-[#858481] mt-2">請選擇要查看的報告月份</p>
-      </div>
+      </header>
 
-      <div className="mb-6">
+      <section className="mb-5">
         <ClientAccountPanel
           slug={slug}
           projectName={project.name}
           canEdit={isAdmin}
           compact
         />
-      </div>
+      </section>
 
-      {months.length === 0 ? (
-        <div className="bg-white border border-[#dadce0] rounded-lg p-10 text-center text-sm text-[#858481]">
-          {isViewer
-            ? "尚無可查看的報告，新報告發佈後將自動顯示於此。"
-            : "此專案尚無可查看的月份，請完成資料上傳並發佈後再查看。"}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="dw-section-label mb-1">月度報告</p>
+            <h2 className="text-sm font-semibold text-[#12377A]">
+              選擇報告月份
+            </h2>
+          </div>
+          <span className="text-xs text-[#858481]">
+            {months.length} 個月份
+          </span>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {months.map((month) => {
-            const canOpen = month.status === "ready";
-            return (
-              <div
-                key={month.id}
-                className="bg-white border border-[#dadce0] rounded-lg p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#e8f0fe] flex items-center justify-center text-[#12377A]">
-                    <Calendar size={18} />
+
+        {months.length === 0 ? (
+          <div className="dw-card p-8 text-center text-sm text-[#858481]">
+            {isViewer
+              ? "尚無可查看的報告，新報告發佈後將自動顯示於此。"
+              : "此專案尚無可查看的月份，請完成資料上傳並發佈後再查看。"}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {months.map((month) => {
+              const canOpen = month.status === "ready";
+              return (
+                <div
+                  key={month.id}
+                  className="dw-card p-3.5 sm:p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:shadow-sm transition-shadow"
+                >
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-lg bg-[#e8f0fe] flex items-center justify-center text-[#12377A] shrink-0">
+                      <Calendar size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm sm:text-base font-semibold text-[#12377A]">
+                        {month.report_month}
+                      </div>
+                      <div className="text-xs text-[#858481] mt-0.5 truncate">
+                        {month.report_date_range || "尚未設定日期範圍"}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs">
+                        {isViewer ? (
+                          <span className="inline-flex items-center gap-1 text-[#1e8e3e]">
+                            <CheckCircle size={12} />
+                            已發佈 · 可查看
+                          </span>
+                        ) : (
+                          <>
+                            {month.status === "ready" ? (
+                              <span className="inline-flex items-center gap-1 text-[#1e8e3e]">
+                                <CheckCircle size={12} />
+                                報告就緒
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[#f9ab00]">
+                                <Clock size={12} />
+                                {month.csv_count}/6 CSV
+                              </span>
+                            )}
+                            {month.views_approved ? (
+                              <span className="text-[#1e8e3e]">Views 已開放</span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[#858481]">
+                                <Lock size={12} />
+                                待發佈
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-base font-semibold text-[#12377A]">
-                      {month.report_month}
-                    </div>
-                    <div className="text-xs text-[#858481] mt-0.5">
-                      {month.report_date_range || "尚未設定日期範圍"}
-                    </div>
-                    <div className="flex items-center gap-3 mt-2 text-xs">
-                      {isViewer ? (
-                        <span className="inline-flex items-center gap-1 text-[#1e8e3e]">
-                          <CheckCircle size={12} />
-                          已發佈 · 可查看
-                        </span>
-                      ) : (
-                        <>
-                          {month.status === "ready" ? (
-                            <span className="inline-flex items-center gap-1 text-[#1e8e3e]">
-                              <CheckCircle size={12} />
-                              報告就緒
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[#f9ab00]">
-                              <Clock size={12} />
-                              {month.csv_count}/6 CSV
-                            </span>
-                          )}
-                          {month.views_approved ? (
-                            <span className="text-[#1e8e3e]">Views 已開放</span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[#858481]">
-                              <Lock size={12} />
-                              待發佈
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
+
+                  {canOpen ? (
+                    <Link
+                      href={projectPagePath(slug, String(month.id))}
+                      className="inline-flex items-center justify-center gap-1.5 bg-[#12377A] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#0d2a5e] shrink-0 min-h-10"
+                    >
+                      <FileText size={14} />
+                      查看報告
+                    </Link>
+                  ) : (
+                    <span className="text-xs text-[#858481] shrink-0">資料未完成</span>
+                  )}
                 </div>
-
-                {canOpen ? (
-                  <Link
-                    href={projectPagePath(slug, String(month.id))}
-                    className="bg-[#12377A] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#0d2a5e]"
-                  >
-                    查看報告
-                  </Link>
-                ) : (
-                  <span className="text-xs text-[#858481]">資料未完成</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

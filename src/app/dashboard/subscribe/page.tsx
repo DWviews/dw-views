@@ -111,8 +111,8 @@ export default function SubscribePage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
-      <div className="text-center mb-10">
+    <div className="dw-page dw-page-wide">
+      <div className="text-center mb-8 sm:mb-10">
         <div className="inline-flex items-center gap-2 bg-[#e8f0fe] text-[#12377A] px-3 py-1 rounded-full text-xs font-medium mb-4">
           <Sparkles size={14} />
           升級您的分析能力
