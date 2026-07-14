@@ -11,6 +11,7 @@ import {
   Sparkles,
   Crown,
 } from "lucide-react";
+import { copyrightLine } from "@/lib/app-version";
 
 interface PlanFeature {
   text: string;
@@ -239,7 +240,7 @@ export default function SubscribePage() {
       </div>
 
       <p className="text-center text-xs text-[#9aa0a6] mt-8">
-        © 2026 Diamond Wise Company · 訂閱方案價格以美元計價，實際功能以合約為準
+        {copyrightLine("訂閱方案價格以美元計價，實際功能以合約為準")}
       </p>
 
       {toast && (

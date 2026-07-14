@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import LoginHero from "@/components/login/LoginHero";
+import { copyrightLine } from "@/lib/app-version";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -111,7 +112,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-8 text-center text-xs text-[#9aa0a6] lg:hidden">
-            © 2026 Diamond Wise Company
+            {copyrightLine()}
             <br />
             大中華區：中國大陸 · 香港 · 台灣
           </p>

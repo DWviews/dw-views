@@ -1,3 +1,5 @@
+import { copyrightLine } from "@/lib/app-version";
+
 const METRICS = [
   { value: "50+", label: "Google Ads 帳號", sub: "多客戶集中管理" },
   { value: "99.9%", label: "系統可用性", sub: "企業級 SLA 保障" },
@@ -220,7 +222,7 @@ export default function LoginHero() {
         {/* Copyright */}
         <div className="mt-10 pt-6 border-t border-white/15">
           <p className="text-blue-200/70 text-xs">
-            © 2026 Diamond Wise Company. All rights reserved.
+            {copyrightLine("All rights reserved.")}
           </p>
           <p className="text-blue-200/50 text-xs mt-1">
             大中華區服務範圍：中國大陸 · 香港 · 台灣
