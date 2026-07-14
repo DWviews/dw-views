@@ -55,13 +55,12 @@ export async function GET(
   const files = await loadMonthCsvFiles(month.id);
   const metrics = await resolveMetrics(month.id, files);
   if (!metrics) {
-    return NextResponse.json(
-      {
-        error: "此月份尚無可編輯的專案數值",
-        editable: false,
-      },
-      { status: 404 }
-    );
+    // 新建專案／尚未上傳 CSV 時屬正常狀態，回 200 避免前端 console 出現 404
+    return NextResponse.json({
+      metrics: null,
+      editable: false,
+      message: "此月份尚無可編輯的專案數值",
+    });
   }
 
   const overrides = await getMetricOverrides(month.id);
