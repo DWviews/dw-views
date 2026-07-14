@@ -3,10 +3,19 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import ProjectAdsDashboard from "@/components/dashboard/ProjectAdsDashboard";
-import { apiProjectPath, fetchProjectJson, normalizeProjectSlug } from "@/lib/project-api";
+import {
+  apiProjectPath,
+  fetchProjectJson,
+  normalizeProjectSlug,
+} from "@/lib/project-api";
 import type { ReportData } from "@/lib/report-engine";
 import type { KeywordRow } from "@/lib/keyword-parser";
 import type { DemographicRow, DeviceRow } from "@/lib/csv-parser";
+import type {
+  DailyTrendPoint,
+  DailyTrendPromoConfig,
+  WeekdayChartPoint,
+} from "@/lib/daily-trend-shared";
 
 export default function ProjectAdsDashboardPage() {
   const params = useParams();
@@ -18,9 +27,12 @@ export default function ProjectAdsDashboardPage() {
   const [devices, setDevices] = useState<DeviceRow[]>([]);
   const [projectName, setProjectName] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [weekdayChart, setWeekdayChart] = useState<
-    { day: string; impressions: number }[]
-  >([]);
+  const [weekdayChart, setWeekdayChart] = useState<WeekdayChartPoint[]>([]);
+  const [dailyTrend, setDailyTrend] = useState<{
+    points: DailyTrendPoint[];
+    promo: DailyTrendPromoConfig;
+    daysInMonth: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -33,7 +45,12 @@ export default function ProjectAdsDashboardPage() {
       demographics?: DemographicRow[];
       devices?: DeviceRow[];
       project: { name: string };
-      weekdayChart?: { day: string; impressions: number }[];
+      weekdayChart?: WeekdayChartPoint[];
+      dailyTrend?: {
+        points: DailyTrendPoint[];
+        promo: DailyTrendPromoConfig;
+        daysInMonth: number;
+      };
       isAdmin?: boolean;
     }>(apiProjectPath(slug, `months/${monthId}/dashboard`))
       .then((data) => {
@@ -44,6 +61,7 @@ export default function ProjectAdsDashboardPage() {
         setProjectName(data.project.name);
         setIsAdmin(Boolean(data.isAdmin));
         setWeekdayChart(data.weekdayChart || []);
+        setDailyTrend(data.dailyTrend || null);
       })
       .catch((err) =>
         setError(err instanceof Error ? err.message : "無法載入儀表板")
@@ -78,6 +96,7 @@ export default function ProjectAdsDashboardPage() {
       devices={devices}
       isAdmin={isAdmin}
       weekdayChart={weekdayChart}
+      dailyTrend={dailyTrend}
     />
   );
 }

@@ -114,13 +114,26 @@ export async function listProjectMonths(
 
   if (error) throw error;
 
-  const months: ProjectMonthRecord[] = [];
-  for (const row of data ?? []) {
-    const csvCount = await getCsvFileCount(row.id);
-    months.push(mapMonthRow(row, csvCount));
+  const rows = data ?? [];
+  if (rows.length === 0) return [];
+
+  const monthIds = rows.map((row) => row.id as number);
+  const { data: csvRows, error: csvError } = await supabase
+    .from("project_csv_files")
+    .select("project_month_id")
+    .in("project_month_id", monthIds);
+
+  if (csvError) throw csvError;
+
+  const countMap = new Map<number, number>();
+  for (const csv of csvRows ?? []) {
+    const mid = csv.project_month_id as number;
+    countMap.set(mid, (countMap.get(mid) || 0) + 1);
   }
 
-  return months.filter((month) => canViewMonth(user, month));
+  return rows
+    .map((row) => mapMonthRow(row, countMap.get(row.id as number) ?? 0))
+    .filter((month) => canViewMonth(user, month));
 }
 
 export async function getProjectMonthById(

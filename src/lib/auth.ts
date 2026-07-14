@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
+import { cache } from "react";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "dw-views-secret-key-change-in-production"
@@ -58,11 +59,11 @@ export async function verifyToken(token: string): Promise<SessionUser | null> {
   }
 }
 
-export async function getSession(): Promise<SessionUser | null> {
+export const getSession = cache(async (): Promise<SessionUser | null> => {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
   return verifyToken(token);
-}
+});
 
 export { COOKIE_NAME };

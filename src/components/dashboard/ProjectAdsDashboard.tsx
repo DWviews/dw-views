@@ -5,7 +5,11 @@ import type { ReportData } from "@/lib/report-engine";
 import type { KeywordRow } from "@/lib/keyword-parser";
 import { apiProjectPath, projectPagePath } from "@/lib/project-api";
 import type { DemographicRow, DeviceRow } from "@/lib/csv-parser";
-import type { WeekdayChartPoint } from "@/lib/daily-trend-shared";
+import type {
+  DailyTrendPoint,
+  DailyTrendPromoConfig,
+  WeekdayChartPoint,
+} from "@/lib/daily-trend-shared";
 import Link from "next/link";
 import MonthlyTrendChart from "@/components/dashboard/MonthlyTrendChart";
 import ChartContainer from "@/components/dashboard/ChartContainer";
@@ -61,6 +65,7 @@ export default function ProjectAdsDashboard({
   devices = [],
   isAdmin = false,
   weekdayChart,
+  dailyTrend,
 }: {
   report: ReportData;
   projectSlug: string;
@@ -71,6 +76,11 @@ export default function ProjectAdsDashboard({
   devices?: DeviceRow[];
   isAdmin?: boolean;
   weekdayChart?: WeekdayChartPoint[];
+  dailyTrend?: {
+    points: DailyTrendPoint[];
+    promo: DailyTrendPromoConfig;
+    daysInMonth: number;
+  } | null;
 }) {
   const totalClicks = report.page2.metrics[0]?.value ?? "-";
   const totalImpressions = report.page2.metrics[1]?.value ?? "-";
@@ -259,6 +269,7 @@ export default function ProjectAdsDashboard({
             reportMonth={report.project?.reportMonth || ""}
             isAdmin={isAdmin}
             weekdaySeed={weekdaySeed}
+            initialTrend={dailyTrend}
           />
         </div>
 

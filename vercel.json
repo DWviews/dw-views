@@ -2,7 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "functions": {
-    "src/app/api/**/*.ts": {
+    "src/app/api/projects/[slug]/pdf/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/projects/[slug]/months/generate/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/projects/[slug]/months/[monthId]/randomize/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/projects/[slug]/months/[monthId]/metrics/route.ts": {
       "maxDuration": 60
     }
   }

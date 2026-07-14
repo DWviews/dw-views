@@ -25,6 +25,9 @@ const nextConfig: NextConfig = {
     "@sparticuz/chromium-min",
     "puppeteer-core",
   ],
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts"],
+  },
   env: {
     NEXT_PUBLIC_APP_VERSION: gitVersion,
   },

@@ -104,6 +104,7 @@ export async function GET(
     month.report_date_range,
     {
       weekdayChart: weekdaySeed,
+      // 讀取優先：已存在且吻合則不寫庫（resolveDailyTrend 內部處理）
       persist: true,
       totalImpressions,
       ctr,
@@ -111,8 +112,12 @@ export async function GET(
     }
   );
 
-  if (weekdaySeed?.length && !(await getWeekdayChartOverrides(month.id))) {
-    await setWeekdayChartOverrides(month.id, weekdaySeed);
+  // 僅在尚未有 weekday 覆寫時才補存（避免每次 GET 寫入）
+  if (weekdaySeed?.length) {
+    const existingWeekday = await getWeekdayChartOverrides(month.id);
+    if (!existingWeekday) {
+      await setWeekdayChartOverrides(month.id, weekdaySeed);
+    }
   }
 
   return NextResponse.json({

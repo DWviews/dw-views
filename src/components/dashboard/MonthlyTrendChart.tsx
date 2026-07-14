@@ -38,6 +38,11 @@ interface MonthlyTrendChartProps {
   reportMonth: string;
   isAdmin: boolean;
   weekdaySeed?: WeekdayChartPoint[];
+  initialTrend?: {
+    points: DailyTrendPoint[];
+    promo: DailyTrendPromoConfig;
+    daysInMonth: number;
+  } | null;
 }
 
 export default function MonthlyTrendChart({
@@ -51,20 +56,37 @@ export default function MonthlyTrendChart({
   reportMonth,
   isAdmin,
   weekdaySeed = [],
+  initialTrend = null,
 }: MonthlyTrendChartProps) {
-  const [points, setPoints] = useState<DailyTrendPoint[]>([]);
-  const [promo, setPromo] = useState<DailyTrendPromoConfig>({
-    promoStartDay: 1,
-    promoEndDay: 30,
-  });
-  const [daysInMonth, setDaysInMonth] = useState(30);
-  const [loading, setLoading] = useState(true);
+  const hasInitial =
+    Boolean(initialTrend?.points?.length) &&
+    Number(initialTrend?.daysInMonth) > 0;
+
+  const [points, setPoints] = useState<DailyTrendPoint[]>(
+    () => initialTrend?.points ?? []
+  );
+  const [promo, setPromo] = useState<DailyTrendPromoConfig>(
+    () =>
+      initialTrend?.promo ?? {
+        promoStartDay: 1,
+        promoEndDay: 30,
+      }
+  );
+  const [daysInMonth, setDaysInMonth] = useState(
+    () => initialTrend?.daysInMonth ?? 30
+  );
+  const [loading, setLoading] = useState(!hasInitial);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<DailyTrendPoint[]>([]);
-  const [draftPromo, setDraftPromo] = useState<DailyTrendPromoConfig>({
-    promoStartDay: 1,
-    promoEndDay: 30,
-  });
+  const [draft, setDraft] = useState<DailyTrendPoint[]>(
+    () => initialTrend?.points ?? []
+  );
+  const [draftPromo, setDraftPromo] = useState<DailyTrendPromoConfig>(
+    () =>
+      initialTrend?.promo ?? {
+        promoStartDay: 1,
+        promoEndDay: 30,
+      }
+  );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -102,9 +124,28 @@ export default function MonthlyTrendChart({
   }
 
   useEffect(() => {
+    if (hasInitial) {
+      setLoading(false);
+      return;
+    }
     loadTrend();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectSlug, monthId, totalClicks, totalConversions]);
+  }, [projectSlug, monthId, totalClicks, totalConversions, hasInitial]);
+
+  useEffect(() => {
+    if (
+      !initialTrend?.points?.length ||
+      Number(initialTrend.daysInMonth) <= 0
+    ) {
+      return;
+    }
+    setPoints(initialTrend.points);
+    setPromo(initialTrend.promo);
+    setDaysInMonth(initialTrend.daysInMonth);
+    setDraft(initialTrend.points);
+    setDraftPromo(initialTrend.promo);
+    setLoading(false);
+  }, [initialTrend]);
 
   const activePromo = editing ? draftPromo : promo;
   const chartData = useMemo(

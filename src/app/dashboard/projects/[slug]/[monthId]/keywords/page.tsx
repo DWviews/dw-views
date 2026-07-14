@@ -33,21 +33,17 @@ export default function ProjectKeywordsPage() {
   const [error, setError] = useState("");
 
   async function loadData() {
-    const [keywordData, dashboardData] = await Promise.all([
-      fetchProjectJson<{
-        isAdmin?: boolean;
-        items?: KeywordAdminItem[];
-        keywords?: KeywordRow[];
-      }>(apiProjectPath(slug, `months/${monthId}/keywords`)),
-      fetchProjectJson<{
-        project?: { name: string };
-        month?: { report_month: string };
-      }>(apiProjectPath(slug, `months/${monthId}/dashboard`)),
-    ]);
+    const keywordData = await fetchProjectJson<{
+      isAdmin?: boolean;
+      items?: KeywordAdminItem[];
+      keywords?: KeywordRow[];
+      project?: { name: string };
+      month?: { report_month: string };
+    }>(apiProjectPath(slug, `months/${monthId}/keywords`));
 
     setIsAdmin(Boolean(keywordData.isAdmin));
-    setProjectName(dashboardData.project?.name || "");
-    setReportMonth(dashboardData.month?.report_month || "");
+    setProjectName(keywordData.project?.name || "");
+    setReportMonth(keywordData.month?.report_month || "");
 
     if (keywordData.isAdmin && keywordData.items) {
       setItems(keywordData.items);

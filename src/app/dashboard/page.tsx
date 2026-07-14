@@ -21,14 +21,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/projects").then((r) => r.json()),
-      fetch("/api/auth/session").then((r) => r.json()),
-    ]).then(([projData, sessionData]) => {
-      setProjects(projData.projects || []);
-      setUser(sessionData.user);
-      setLoading(false);
-    });
+    fetch("/api/projects")
+      .then((r) => r.json())
+      .then((projData) => {
+        setProjects(projData.projects || []);
+        setUser(projData.user || null);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   if (loading) {

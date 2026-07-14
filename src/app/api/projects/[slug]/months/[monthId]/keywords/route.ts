@@ -39,10 +39,28 @@ export async function GET(
 
   const isAdmin = session.role === "admin";
 
+  if (isAdmin) {
+    const items = await getKeywordAdminItems(month.id);
+    return NextResponse.json({
+      project: { id: project.id, name: project.name, slug: project.slug },
+      month: {
+        id: month.id,
+        report_month: month.report_month,
+      },
+      isAdmin: true,
+      items,
+      keywords: items.map((item) => item.adjusted),
+    });
+  }
+
   return NextResponse.json({
+    project: { id: project.id, name: project.name, slug: project.slug },
+    month: {
+      id: month.id,
+      report_month: month.report_month,
+    },
+    isAdmin: false,
     keywords: await getKeywordRows(month.id),
-    isAdmin,
-    items: isAdmin ? await getKeywordAdminItems(month.id) : undefined,
   });
 }
 

@@ -1,22 +1,23 @@
+import { cache } from "react";
 import { getSupabaseAdmin } from "./supabase";
 
-export async function loadMonthCsvFiles(
-  monthId: number
-): Promise<Record<string, string>> {
-  const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
-    .from("project_csv_files")
-    .select("file_type, raw_content")
-    .eq("project_month_id", monthId);
+export const loadMonthCsvFiles = cache(
+  async (monthId: number): Promise<Record<string, string>> => {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from("project_csv_files")
+      .select("file_type, raw_content")
+      .eq("project_month_id", monthId);
 
-  if (error) throw error;
+    if (error) throw error;
 
-  const files: Record<string, string> = {};
-  for (const row of data ?? []) {
-    files[row.file_type] = row.raw_content;
+    const files: Record<string, string> = {};
+    for (const row of data ?? []) {
+      files[row.file_type] = row.raw_content;
+    }
+    return files;
   }
-  return files;
-}
+);
 
 export async function upsertMonthCsvFiles(
   projectId: number,
@@ -24,20 +25,20 @@ export async function upsertMonthCsvFiles(
   files: Record<string, string>
 ): Promise<void> {
   const supabase = getSupabaseAdmin();
+  const rows = Object.entries(files).map(([fileType, rawContent]) => ({
+    project_id: projectId,
+    project_month_id: monthId,
+    file_type: fileType,
+    raw_content: rawContent,
+    uploaded_at: new Date().toISOString(),
+  }));
 
-  for (const [fileType, rawContent] of Object.entries(files)) {
-    const { error } = await supabase.from("project_csv_files").upsert(
-      {
-        project_id: projectId,
-        project_month_id: monthId,
-        file_type: fileType,
-        raw_content: rawContent,
-        uploaded_at: new Date().toISOString(),
-      },
-      { onConflict: "project_month_id,file_type" }
-    );
-    if (error) throw error;
-  }
+  if (rows.length === 0) return;
+
+  const { error } = await supabase.from("project_csv_files").upsert(rows, {
+    onConflict: "project_month_id,file_type",
+  });
+  if (error) throw error;
 }
 
 export async function insertMonthCsvFiles(
