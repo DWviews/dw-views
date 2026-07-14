@@ -109,7 +109,6 @@ export default function DashboardPage() {
       ) : (
         <div className="grid gap-4">
           {projects.map((p) => {
-            const displayName = p.company_name || p.name;
             const contractStatus = getContractStatus(
               p.contract_start_date,
               p.contract_end_date
@@ -117,6 +116,9 @@ export default function DashboardPage() {
             const statusMeta = contractStatus
               ? CONTRACT_STATUS_LABELS[contractStatus]
               : null;
+            const showCompanyName =
+              p.company_name &&
+              p.company_name.trim() !== p.name.trim();
 
             return (
             <Link
@@ -127,20 +129,25 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                 <ClientAccountAvatar
                   logoUrl={p.logo_url}
-                  name={displayName}
+                  name={p.name}
                   size={48}
                 />
                 <div>
                   <h3 className="text-base font-semibold text-[#12377A] group-hover:text-[#3D8BC1] break-words">
-                    {displayName} Google Ads Monthly Report
+                    {p.name} Google Ads Monthly Report
                   </h3>
                   <p className="text-sm text-[#858481]">{p.campaign_name}</p>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#858481] mt-0.5">
-                    {p.client_id && <span>客戶編號 {p.client_id}</span>}
-                    {p.account_manager && (
+                    {!isViewer && showCompanyName && (
+                      <span>{p.company_name}</span>
+                    )}
+                    {!isViewer && p.client_id && (
+                      <span>客戶編號 {p.client_id}</span>
+                    )}
+                    {!isViewer && p.account_manager && (
                       <span>客戶經理 {p.account_manager}</span>
                     )}
-                    {p.monthly_budget != null && (
+                    {!isViewer && p.monthly_budget != null && (
                       <span>月預算 {formatBudget(p.monthly_budget)}</span>
                     )}
                     <span>
