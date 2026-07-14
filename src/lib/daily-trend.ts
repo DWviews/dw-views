@@ -26,6 +26,7 @@ export {
   defaultPromoRange,
   generateAverageDailyTrend,
   generateDefaultDailyTrend,
+  isLongPromoRange,
   normalizePromo,
   parseDailyTrendRecord,
   parseWeekdayChart,

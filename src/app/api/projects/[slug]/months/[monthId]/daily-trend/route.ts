@@ -14,6 +14,7 @@ import {
   setWeekdayChartOverrides,
   validateDailyTrend,
   validatePromo,
+  isLongPromoRange,
   type DailyTrendPoint,
   type DailyTrendPromoConfig,
   type WeekdayChartPoint,
@@ -183,7 +184,8 @@ export async function PATCH(
       convRate: totals.convRate,
     };
 
-    const isAverage = body.resetMode === "average";
+    const isAverage =
+      body.resetMode === "average" || isLongPromoRange(promo);
     const points = isAverage
       ? generateAverageDailyTrend(
           totals.totalClicks,
@@ -207,7 +209,9 @@ export async function PATCH(
       daysInMonth,
       weekdayChart: await getWeekdayChartOverrides(month.id),
       message: isAverage
-        ? "已重設為平均趨勢（保留閃電起伏）並儲存"
+        ? body.resetMode === "average"
+          ? "已重設為平均趨勢（保留閃電起伏）並儲存"
+          : `優惠期超過 24 日，已平均分佈至 1–${daysInMonth} 日並儲存`
         : `已依優惠期（${promo.promoStartDay}–${promo.promoEndDay} 日）自動生成並儲存趨勢數值`,
       source: "saved",
     });

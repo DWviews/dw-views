@@ -16,7 +16,7 @@ import type {
   DailyTrendPromoConfig,
   WeekdayChartPoint,
 } from "@/lib/daily-trend-shared";
-import { defaultPromoRange, formatDayAxisLabel } from "@/lib/daily-trend-shared";
+import { defaultPromoRange, formatDayAxisLabel, LONG_PROMO_DAY_THRESHOLD } from "@/lib/daily-trend-shared";
 import ChartContainer from "@/components/dashboard/ChartContainer";
 
 interface MonthlyTrendChartProps {
@@ -348,6 +348,8 @@ export default function MonthlyTrendChart({
         <div className="px-4 py-3 border-b border-[#f1f3f4] bg-[#fff8e1]">
           <p className="text-xs text-[#5f6368] mb-2">
             優惠期內數值較高，期外仍依星期與 CTR 保持起伏，只是整體低於優惠期。
+            若優惠開始／結束超過 24 日，會自動改為全月（1–{daysInMonth}{" "}
+            日）平均分佈。
           </p>
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <label className="flex items-center gap-1 text-[#202124]">
@@ -384,6 +386,13 @@ export default function MonthlyTrendChart({
               />
               日
             </label>
+            {draftPromo.promoEndDay - draftPromo.promoStartDay + 1 >
+              LONG_PROMO_DAY_THRESHOLD && (
+              <span className="text-[#e37400]">
+                超過 {LONG_PROMO_DAY_THRESHOLD} 日 → 自動生成時平均分佈
+                1–{daysInMonth} 日
+              </span>
+            )}
             <button
               type="button"
               onClick={() => setDraftPromo(defaultPromoRange(daysInMonth))}

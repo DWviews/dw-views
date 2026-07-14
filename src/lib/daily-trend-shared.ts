@@ -56,6 +56,21 @@ export function daysInReportMonth(
   return 30;
 }
 
+/** 優惠期超過此天數時改為全月平均分佈（1–30／1–31） */
+export const LONG_PROMO_DAY_THRESHOLD = 24;
+
+export function promoDayCount(promo: DailyTrendPromoConfig): number {
+  return Math.max(0, promo.promoEndDay - promo.promoStartDay + 1);
+}
+
+export function isLongPromoRange(promo: DailyTrendPromoConfig): boolean {
+  return promoDayCount(promo) > LONG_PROMO_DAY_THRESHOLD;
+}
+
+export function fullMonthPromoRange(daysInMonth: number): DailyTrendPromoConfig {
+  return { promoStartDay: 1, promoEndDay: daysInMonth };
+}
+
 export function defaultPromoRange(daysInMonth: number): DailyTrendPromoConfig {
   const span = Math.max(5, Math.round(daysInMonth * 0.35));
   const start = Math.max(1, Math.round(daysInMonth * 0.28));
@@ -306,6 +321,17 @@ export function generateDefaultDailyTrend(
   promo: DailyTrendPromoConfig = defaultPromoRange(daysInMonth),
   context: GenerateDailyTrendContext = {}
 ): DailyTrendPoint[] {
+  const resolvedPromo = normalizePromo(promo, daysInMonth);
+  // 優惠期超過 24 日：normalize 為全月，平均分佈至 1–30／1–31
+  if (isLongPromoRange(resolvedPromo)) {
+    return generateAverageDailyTrend(
+      totalClicks,
+      totalConversions,
+      daysInMonth,
+      context
+    );
+  }
+
   const weekdayWeights = buildWeekdayWeightMap(context.weekdayChart);
   const reportMonth = context.reportMonth || "January 2026";
   const totalImpressions = Math.max(0, context.totalImpressions ?? 0);
@@ -324,10 +350,10 @@ export function generateDefaultDailyTrend(
 
   const impressionWeights = Array.from({ length: daysInMonth }, (_, index) => {
     const day = index + 1;
-    const inPromo = isInPromo(day, promo);
+    const inPromo = isInPromo(day, resolvedPromo);
     const weekday = getWeekdayNameForDay(reportMonth, day);
     const weekdayWeight = weekdayWeights[weekday] ?? 1 / 7;
-    const promoMult = promoPriorityMultiplier(day, promo, "traffic");
+    const promoMult = promoPriorityMultiplier(day, resolvedPromo, "traffic");
     const weekdayMult = weekdayInfluence(weekdayWeight);
     const spike = lightningSpikeForDay(day, "clicks", inPromo);
     return Math.max(0.08, promoMult * weekdayMult * spike);
@@ -342,7 +368,7 @@ export function generateDefaultDailyTrend(
     const day = index + 1;
     const impressions =
       totalImpressions > 0 ? dailyImpressions[index] : impressionWeights[index];
-    const dayCtr = effectiveCtrForDay(baseCtr, day, promo);
+    const dayCtr = effectiveCtrForDay(baseCtr, day, resolvedPromo);
     return Math.max(0.01, impressions * (dayCtr / 100));
   });
 
@@ -350,7 +376,7 @@ export function generateDefaultDailyTrend(
 
   const conversionWeights = clicks.map((clickValue, index) => {
     const day = index + 1;
-    const dayConvRate = effectiveConvRateForDay(baseConvRate, day, promo);
+    const dayConvRate = effectiveConvRateForDay(baseConvRate, day, resolvedPromo);
     return Math.max(0.001, clickValue * (dayConvRate / 100));
   });
 
@@ -436,7 +462,12 @@ export function normalizePromo(
       Math.round(Number(promo?.promoEndDay) || defaults.promoEndDay)
     )
   );
-  return { promoStartDay: start, promoEndDay: end };
+  const clipped = { promoStartDay: start, promoEndDay: end };
+  // 超過 24 日改為涵蓋全月，配合平均分佈
+  if (isLongPromoRange(clipped)) {
+    return fullMonthPromoRange(daysInMonth);
+  }
+  return clipped;
 }
 
 export function parseDailyTrendRecord(
