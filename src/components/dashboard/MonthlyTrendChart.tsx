@@ -7,7 +7,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  ResponsiveContainer,
   ReferenceArea,
 } from "recharts";
 import { Activity, Pencil, RotateCcw, Save, X } from "lucide-react";
@@ -18,6 +17,7 @@ import type {
   WeekdayChartPoint,
 } from "@/lib/daily-trend-shared";
 import { defaultPromoRange, formatDayAxisLabel } from "@/lib/daily-trend-shared";
+import ChartContainer from "@/components/dashboard/ChartContainer";
 
 interface MonthlyTrendChartProps {
   projectSlug: string;
@@ -62,6 +62,7 @@ export default function MonthlyTrendChart({
 
   async function loadTrend() {
     setLoading(true);
+    setMessage("");
     try {
       const weekdayQuery =
         weekdaySeed.length > 0
@@ -74,11 +75,19 @@ export default function MonthlyTrendChart({
       }>(
         `${apiProjectPath(projectSlug, `months/${monthId}/daily-trend`)}?clicks=${totalClicks}&conversions=${totalConversions}&impressions=${totalImpressions}&ctr=${ctr}&convRate=${convRate}${weekdayQuery}`
       );
-      setPoints(data.points);
-      setPromo(data.promo);
-      setDaysInMonth(data.daysInMonth);
-      setDraft(data.points);
-      setDraftPromo(data.promo);
+      const nextPoints = Array.isArray(data.points) ? data.points : [];
+      const nextDays =
+        Number(data.daysInMonth) > 0 ? Number(data.daysInMonth) : 30;
+      const nextPromo = data.promo ?? defaultPromoRange(nextDays);
+      setPoints(nextPoints);
+      setPromo(nextPromo);
+      setDaysInMonth(nextDays);
+      setDraft(nextPoints);
+      setDraftPromo(nextPromo);
+    } catch (err) {
+      setPoints([]);
+      setDraft([]);
+      setMessage(err instanceof Error ? err.message : "載入趨勢失敗");
     } finally {
       setLoading(false);
     }
@@ -94,9 +103,9 @@ export default function MonthlyTrendChart({
     () =>
       (editing ? draft : points).map((point) => ({
         day: point.day,
-        label: formatDayAxisLabel(reportMonth, point.day),
-        點擊: point.clicks,
-        轉換: point.conversions,
+        label: formatDayAxisLabel(reportMonth || "", point.day),
+        點擊: Number(point.clicks) || 0,
+        轉換: Number(point.conversions) || 0,
         inPromo:
           point.day >= activePromo.promoStartDay &&
           point.day <= activePromo.promoEndDay,
@@ -384,69 +393,81 @@ export default function MonthlyTrendChart({
         </div>
       )}
 
-      <div className="p-4 h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <ReferenceArea
-              x1={promoStartLabel}
-              x2={promoEndLabel}
-              fill="#fbbc04"
-              fillOpacity={0.12}
-              strokeOpacity={0}
-            />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 9, fill: "#5f6368" }}
-              axisLine={false}
-              tickLine={false}
-              interval={Math.max(0, Math.floor(daysInMonth / 10))}
-              angle={-42}
-              textAnchor="end"
-              height={52}
-            />
-            <YAxis
-              yAxisId="left"
-              tick={{ fontSize: 11, fill: "#5f6368" }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              tick={{ fontSize: 11, fill: "#5f6368" }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              labelFormatter={(_label, payload) => {
-                const row = payload?.[0]?.payload as { label?: string } | undefined;
-                return row?.label || _label;
-              }}
-              formatter={(value: number, name: string) => [
-                name === "轉換" ? value.toFixed(1) : value.toLocaleString(),
-                name,
-              ]}
-            />
-            <Line
-              yAxisId="left"
-              type="linear"
-              dataKey="點擊"
-              stroke="#4285f4"
-              strokeWidth={2.5}
-              dot={isAdmin && editing ? { r: 2 } : false}
-              activeDot={{ r: 4 }}
-            />
-            <Line
-              yAxisId="right"
-              type="linear"
-              dataKey="轉換"
-              stroke="#db4437"
-              strokeWidth={2.2}
-              dot={isAdmin && editing ? { r: 2 } : false}
-              activeDot={{ r: 4 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+      <div className="p-4">
+        {chartData.length === 0 ? (
+          <div className="h-[300px] flex items-center justify-center text-sm text-[#5f6368]">
+            {message || "尚無趨勢資料"}
+          </div>
+        ) : (
+          <ChartContainer height={300}>
+            <LineChart data={chartData}>
+              <ReferenceArea
+                x1={promoStartLabel}
+                x2={promoEndLabel}
+                fill="#fbbc04"
+                fillOpacity={0.12}
+                strokeOpacity={0}
+              />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 9, fill: "#5f6368" }}
+                axisLine={false}
+                tickLine={false}
+                interval={Math.max(0, Math.floor(daysInMonth / 10))}
+                angle={-42}
+                textAnchor="end"
+                height={52}
+              />
+              <YAxis
+                yAxisId="left"
+                tick={{ fontSize: 11, fill: "#5f6368" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tick={{ fontSize: 11, fill: "#5f6368" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                labelFormatter={(_label, payload) => {
+                  const row = payload?.[0]?.payload as
+                    | { label?: string }
+                    | undefined;
+                  return row?.label || String(_label ?? "");
+                }}
+                formatter={(value: number | string, name: string) => {
+                  const num = Number(value);
+                  const safe = Number.isFinite(num) ? num : 0;
+                  return [
+                    name === "轉換" ? safe.toFixed(1) : safe.toLocaleString(),
+                    name,
+                  ];
+                }}
+              />
+              <Line
+                yAxisId="left"
+                type="linear"
+                dataKey="點擊"
+                stroke="#4285f4"
+                strokeWidth={2.5}
+                dot={isAdmin && editing ? { r: 2 } : false}
+                activeDot={{ r: 4 }}
+              />
+              <Line
+                yAxisId="right"
+                type="linear"
+                dataKey="轉換"
+                stroke="#db4437"
+                strokeWidth={2.2}
+                dot={isAdmin && editing ? { r: 2 } : false}
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          </ChartContainer>
+        )}
       </div>
 
       {isAdmin && editing && (

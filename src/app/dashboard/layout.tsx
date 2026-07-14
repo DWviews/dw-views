@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Home, FolderOpen, Users, LogOut, Sparkles } from "lucide-react";
+import DashboardUrlMask, {
+  goDashboardHome,
+} from "@/components/dashboard/DashboardUrlMask";
+import { clearDashboardReturnPath } from "@/lib/dashboard-url-mask";
 
 interface User {
   id: number;
@@ -35,6 +39,7 @@ export default function DashboardLayout({
   }, [router]);
 
   async function handleLogout() {
+    clearDashboardReturnPath();
     await fetch("/api/auth/session", { method: "DELETE" });
     router.push("/login");
   }
@@ -52,20 +57,38 @@ export default function DashboardLayout({
   const isAdmin = user.role === "admin";
   const isViewer = user.role === "viewer";
   const nav = [
-    { href: "/dashboard", label: "首頁", icon: Home },
+    { href: "/dashboard", label: "首頁", icon: Home, home: true },
     ...(isViewer
-      ? [{ href: "/dashboard/subscribe", label: "訂閱方案", icon: Sparkles }]
+      ? [
+          {
+            href: "/dashboard/subscribe",
+            label: "訂閱方案",
+            icon: Sparkles,
+            home: false,
+          },
+        ]
       : []),
     ...(isAdmin
       ? [
-          { href: "/dashboard/admin/projects", label: "專案管理", icon: FolderOpen },
-          { href: "/dashboard/admin/users", label: "帳號管理", icon: Users },
+          {
+            href: "/dashboard/admin/projects",
+            label: "專案管理",
+            icon: FolderOpen,
+            home: false,
+          },
+          {
+            href: "/dashboard/admin/users",
+            label: "帳號管理",
+            icon: Users,
+            home: false,
+          },
         ]
       : []),
   ];
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F2F9FC]">
+      <DashboardUrlMask />
       <header className="h-14 border-b border-[#dadce0] bg-white flex items-center px-6 shrink-0">
         <div className="flex items-center gap-2 mr-8">
           <div
@@ -80,11 +103,19 @@ export default function DashboardLayout({
         <nav className="flex items-center gap-1">
           {nav.map((item) => {
             const Icon = item.icon;
-            const active = pathname === item.href || pathname.startsWith(item.href + "/");
+            const active = item.home
+              ? pathname === "/dashboard" || pathname === "/dashboard/"
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={(e) => {
+                  if (item.home) {
+                    e.preventDefault();
+                    goDashboardHome(router);
+                  }
+                }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   active
                     ? "bg-[#e8f0fe] text-[#12377A] font-medium"
@@ -102,7 +133,9 @@ export default function DashboardLayout({
 
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <div className="text-sm font-medium text-[#12377A]">{user.displayName}</div>
+            <div className="text-sm font-medium text-[#12377A]">
+              {user.displayName}
+            </div>
             {user.role !== "viewer" && (
               <div className="text-xs text-[#858481]">
                 {user.role === "admin" ? "管理員" : "編輯者"}

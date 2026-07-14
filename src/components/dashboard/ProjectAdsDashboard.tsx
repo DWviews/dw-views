@@ -8,13 +8,13 @@ import type { DemographicRow, DeviceRow } from "@/lib/csv-parser";
 import type { WeekdayChartPoint } from "@/lib/daily-trend-shared";
 import Link from "next/link";
 import MonthlyTrendChart from "@/components/dashboard/MonthlyTrendChart";
+import ChartContainer from "@/components/dashboard/ChartContainer";
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
   Tooltip,
-  ResponsiveContainer,
 } from "recharts";
 import {
   ArrowLeft,
@@ -88,7 +88,7 @@ export default function ProjectAdsDashboard({
 
   const dayChartData = (weekdayChart && weekdayChart.length > 0
     ? weekdayChart
-    : report.page3.chartData.map((d) => ({
+    : (report.page3?.chartData || []).map((d) => ({
         day: d.day,
         impressions: d.impressions,
       }))
@@ -101,17 +101,17 @@ export default function ProjectAdsDashboard({
     () =>
       weekdayChart && weekdayChart.length > 0
         ? weekdayChart
-        : report.page3.chartData.map((d) => ({
+        : (report.page3?.chartData || []).map((d) => ({
             day: d.day,
             impressions: d.impressions,
           })),
-    [weekdayChart, report.page3.chartData]
+    [weekdayChart, report.page3?.chartData]
   );
 
   const deviceChartData = (
     devices.length > 0
       ? devices.filter((d) => d.device !== "TV screens").slice(0, 3)
-      : report.page5.impressionData.slice(0, 3).map((d) => ({
+      : (report.page5?.impressionData || []).slice(0, 3).map((d) => ({
           device: d.device,
           cost: 0,
           clicks: d.value,
@@ -133,13 +133,13 @@ export default function ProjectAdsDashboard({
       deviceChartData.reduce((s, d) => s + d.conversions, 0) || 1,
   };
 
-  const locationData = report.page6.chartData.map((d) => ({
+  const locationData = (report.page6?.chartData || []).map((d) => ({
     location: d.location,
     impressions: d.impressions,
     percent: d.percent,
   }));
 
-  const competitorData = report.page7.chartData.map((d, index) => ({
+  const competitorData = (report.page7?.chartData || []).map((d, index) => ({
     name: d.name,
     share: d.share,
     color: ["#4285f4", "#db4437", "#fbbc04", "#34a853"][index] || d.color,
@@ -163,10 +163,10 @@ export default function ProjectAdsDashboard({
   const topKeywords = keywords.slice(0, 5);
 
   const topInsightCards = [
-    report.page2.insights[0],
-    report.page5.insights[0]?.desc,
-    report.page6.insights[0]?.desc,
-    report.page7.insights[0]?.desc,
+    report.page2?.insights?.[0],
+    report.page5?.insights?.[0]?.desc,
+    report.page6?.insights?.[0]?.desc,
+    report.page7?.insights?.[0]?.desc,
   ].filter(Boolean);
 
   const widgetClass =
@@ -258,7 +258,7 @@ export default function ProjectAdsDashboard({
             totalImpressions={numericImpressions}
             ctr={numericCtr}
             convRate={numericConvRate}
-            reportMonth={report.project.reportMonth}
+            reportMonth={report.project?.reportMonth || ""}
             isAdmin={isAdmin}
             weekdaySeed={weekdaySeed}
           />
@@ -324,7 +324,7 @@ export default function ProjectAdsDashboard({
                 <span className="text-xs text-[#5f6368]">曝光</span>
               </div>
               <div className="p-4">
-                <ResponsiveContainer width="100%" height={220}>
+                <ChartContainer height={220}>
                   <BarChart data={dayChartData}>
                     <XAxis
                       dataKey="name"
@@ -338,7 +338,7 @@ export default function ProjectAdsDashboard({
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </div>
             </div>
           </div>
@@ -540,7 +540,7 @@ export default function ProjectAdsDashboard({
                 <Monitor size={16} className="text-[#5f6368]" />
               </div>
               <div className="p-4">
-                <ResponsiveContainer width="100%" height={230}>
+                <ChartContainer height={230}>
                   <BarChart data={locationData} layout="vertical">
                     <XAxis
                       type="number"
@@ -557,10 +557,14 @@ export default function ProjectAdsDashboard({
                         value: number,
                         _name,
                         props: { payload?: { percent?: number } }
-                      ) => [
-                        `${value.toLocaleString()} (${props.payload?.percent ?? 0}%)`,
-                        "曝光",
-                      ]}
+                      ) => {
+                        const num = Number(value);
+                        const safe = Number.isFinite(num) ? num : 0;
+                        return [
+                          `${safe.toLocaleString()} (${props.payload?.percent ?? 0}%)`,
+                          "曝光",
+                        ];
+                      }}
                     />
                     <Bar
                       dataKey="impressions"
@@ -568,7 +572,7 @@ export default function ProjectAdsDashboard({
                       radius={[0, 6, 6, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </div>
             </div>
 

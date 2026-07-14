@@ -262,11 +262,18 @@ export function formatDayAxisLabel(
   reportMonth: string,
   calendarDay: number
 ): string {
-  const parts = reportMonth.trim().split(/\s+/);
-  const monthIndex = MONTH_MAP[parts[0].toLowerCase()];
+  const safeMonth =
+    typeof reportMonth === "string" && reportMonth.trim()
+      ? reportMonth.trim()
+      : "January 2026";
+  const parts = safeMonth.split(/\s+/);
+  const monthKey = parts[0]?.toLowerCase() || "";
+  const monthIndex = MONTH_MAP[monthKey];
   const monthShort =
-    monthIndex !== undefined ? MONTH_SHORT[monthIndex] : parts[0].slice(0, 3);
-  const weekdayShort = getWeekdayNameForDay(reportMonth, calendarDay).slice(0, 3);
+    monthIndex !== undefined
+      ? MONTH_SHORT[monthIndex]
+      : (parts[0] || "Jan").slice(0, 3);
+  const weekdayShort = getWeekdayNameForDay(safeMonth, calendarDay).slice(0, 3);
   return `${calendarDay} ${monthShort} (${weekdayShort})`;
 }
 
