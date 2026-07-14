@@ -259,13 +259,15 @@ export default function MonthlyTrendChart({
             月度趨勢（1–{daysInMonth} 日）
           </span>
           {isAdmin && (
-            <span className="text-[10px] font-semibold tracking-wide bg-[#fce8e6] text-[#d93025] px-2 py-0.5 rounded">
-              ADMIN MODE
-            </span>
+            <>
+              <span className="text-[10px] font-semibold tracking-wide bg-[#fce8e6] text-[#d93025] px-2 py-0.5 rounded">
+                ADMIN MODE
+              </span>
+              <span className="text-[10px] text-[#5f6368]">
+                優惠期 {activePromo.promoStartDay}–{activePromo.promoEndDay} 日
+              </span>
+            </>
           )}
-          <span className="text-[10px] text-[#5f6368]">
-            優惠期 {activePromo.promoStartDay}–{activePromo.promoEndDay} 日
-          </span>
         </div>
         {isAdmin && (
           <div className="flex items-center gap-2">
