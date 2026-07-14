@@ -27,8 +27,6 @@ import {
   Search,
   MoreVertical,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Monitor,
 } from "lucide-react";
 
@@ -177,39 +175,35 @@ export default function ProjectAdsDashboard({
   return (
     <div className="min-h-full bg-[#f1f3f4]">
       <div className="bg-[#f8f9fa] border-b border-[#dadce0]">
-        <div className="max-w-[1500px] mx-auto px-6 pt-3 pb-2">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 pt-3 pb-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
                 <Link
                   href={projectPagePath(projectSlug, String(monthId))}
-                  className="inline-flex items-center gap-1 text-sm text-[#5f6368] hover:text-[#1a73e8]"
+                  className="inline-flex items-center gap-1 text-sm text-[#5f6368] hover:text-[#1a73e8] min-h-10"
                 >
                   <ArrowLeft size={14} />
                   返回報告
                 </Link>
-                <span className="text-[#dadce0]">|</span>
+                <span className="text-[#dadce0] hidden sm:inline">|</span>
                 <span className="text-sm text-[#202124] font-medium">首頁</span>
               </div>
-              <h1 className="text-xl font-medium text-[#202124]">
+              <h1 className="text-lg sm:text-xl font-medium text-[#202124] break-words">
                 {projectName} Google Ads Dashboard
               </h1>
             </div>
-            <div className="flex items-center gap-3 text-sm text-[#5f6368]">
-              <div className="flex items-center gap-1 border border-[#dadce0] bg-white px-3 py-2 rounded">
-                <span>自訂</span>
-                <span className="text-[#202124]">{report.project.dateRange}</span>
-                <ChevronDown size={14} />
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-[#5f6368]">
+              <div className="flex items-center gap-1 border border-[#dadce0] bg-white px-3 py-2 rounded max-w-full min-w-0">
+                <span className="shrink-0">自訂</span>
+                <span className="text-[#202124] truncate">
+                  {report.project.dateRange}
+                </span>
+                <ChevronDown size={14} className="shrink-0" />
               </div>
-              <button className="p-2 hover:bg-white rounded-full">
-                <ChevronLeft size={16} />
-              </button>
-              <button className="p-2 hover:bg-white rounded-full">
-                <ChevronRight size={16} />
-              </button>
               <a
                 href={apiProjectPath(projectSlug, `pdf?monthId=${monthId}`)}
-                className="inline-flex items-center gap-2 border border-[#dadce0] bg-white text-[#202124] px-4 py-2 rounded text-sm hover:bg-[#f8f9fa]"
+                className="inline-flex items-center justify-center gap-2 border border-[#dadce0] bg-white text-[#202124] px-4 py-2 rounded text-sm hover:bg-[#f8f9fa] min-h-10"
               >
                 <Download size={14} />
                 匯出 PDF
@@ -219,35 +213,39 @@ export default function ProjectAdsDashboard({
         </div>
       </div>
 
-      <div className="max-w-[1500px] mx-auto p-6">
-        <div className={`${widgetClass} mb-5 overflow-hidden`}>
-          <div className="flex border-b border-[#dadce0]">
-            <div className="flex-1 bg-[#4285f4] text-white px-5 py-4">
+      <div className="max-w-[1500px] mx-auto p-4 sm:p-6 min-w-0">
+        <div className={`${widgetClass} mb-5 overflow-hidden min-w-0`}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-[#dadce0]">
+            <div className="bg-[#4285f4] text-white px-4 sm:px-5 py-3 sm:py-4">
               <div className="text-xs mb-1 flex items-center gap-1">
                 點擊 <ChevronDown size={12} />
               </div>
-              <div className="text-4xl font-normal">{totalClicks}</div>
+              <div className="text-2xl sm:text-4xl font-normal tabular-nums">
+                {totalClicks}
+              </div>
             </div>
-            <div className="flex-1 bg-[#db4437] text-white px-5 py-4">
+            <div className="bg-[#db4437] text-white px-4 sm:px-5 py-3 sm:py-4">
               <div className="text-xs mb-1 flex items-center gap-1">
                 轉換 <ChevronDown size={12} />
               </div>
-              <div className="text-4xl font-normal">{totalConversions}</div>
+              <div className="text-2xl sm:text-4xl font-normal tabular-nums">
+                {totalConversions}
+              </div>
             </div>
-            <div className="flex-1 bg-white px-5 py-4 border-l border-[#dadce0]">
+            <div className="bg-white px-4 sm:px-5 py-3 sm:py-4 border-t lg:border-t-0 lg:border-l border-[#dadce0]">
               <div className="text-xs text-[#5f6368] mb-1">單次轉換費用</div>
-              <div className="text-4xl font-normal text-[#202124]">
+              <div className="text-2xl sm:text-4xl font-normal text-[#202124] tabular-nums">
                 {costPerConversion}
               </div>
             </div>
-            <div className="flex-1 bg-white px-5 py-4 border-l border-[#dadce0] flex justify-between">
-              <div>
+            <div className="bg-white px-4 sm:px-5 py-3 sm:py-4 border-t lg:border-t-0 border-l border-[#dadce0] flex justify-between gap-2">
+              <div className="min-w-0">
                 <div className="text-xs text-[#5f6368] mb-1">費用</div>
-                <div className="text-4xl font-normal text-[#202124]">
+                <div className="text-2xl sm:text-4xl font-normal text-[#202124] tabular-nums break-all">
                   {totalCost}
                 </div>
               </div>
-              <MoreVertical size={16} className="text-[#5f6368]" />
+              <MoreVertical size={16} className="text-[#5f6368] shrink-0" />
             </div>
           </div>
           <MonthlyTrendChart
@@ -386,49 +384,55 @@ export default function ProjectAdsDashboard({
                 </div>
                 <span className="text-xs text-[#5f6368]">曝光</span>
               </div>
-              <div className="p-4">
-                <div className="grid grid-cols-6 gap-1 text-[10px] text-[#5f6368] mb-2">
-                  {ageHeatmap.map((item) => (
-                    <div key={item.label} className="text-center">
-                      {item.label}
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-12 text-xs text-[#5f6368]">男性</span>
-                    <div className="grid grid-cols-6 gap-1 flex-1">
-                      {ageHeatmap.map((item) => (
-                        <div
-                          key={`${item.label}-m`}
-                          className="h-10 rounded"
-                          title={`${item.male.toLocaleString()} 曝光`}
-                          style={{
-                            background: `rgba(66,133,244,${Math.max(
-                              0.12,
-                              item.male / heatmapMax
-                            )})`,
-                          }}
-                        />
-                      ))}
-                    </div>
+              <div className="p-4 overflow-x-auto">
+                <div className="min-w-[300px]">
+                  <div className="grid grid-cols-6 gap-1 text-[10px] text-[#5f6368] mb-2">
+                    {ageHeatmap.map((item) => (
+                      <div key={item.label} className="text-center truncate">
+                        {item.label}
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-12 text-xs text-[#5f6368]">女性</span>
-                    <div className="grid grid-cols-6 gap-1 flex-1">
-                      {ageHeatmap.map((item) => (
-                        <div
-                          key={`${item.label}-f`}
-                          className="h-10 rounded"
-                          title={`${item.female.toLocaleString()} 曝光`}
-                          style={{
-                            background: `rgba(66,133,244,${Math.max(
-                              0.12,
-                              item.female / heatmapMax
-                            )})`,
-                          }}
-                        />
-                      ))}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-10 sm:w-12 text-xs text-[#5f6368] shrink-0">
+                        男性
+                      </span>
+                      <div className="grid grid-cols-6 gap-1 flex-1 min-w-0">
+                        {ageHeatmap.map((item) => (
+                          <div
+                            key={`${item.label}-m`}
+                            className="h-10 rounded"
+                            title={`${item.male.toLocaleString()} 曝光`}
+                            style={{
+                              background: `rgba(66,133,244,${Math.max(
+                                0.12,
+                                item.male / heatmapMax
+                              )})`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-10 sm:w-12 text-xs text-[#5f6368] shrink-0">
+                        女性
+                      </span>
+                      <div className="grid grid-cols-6 gap-1 flex-1 min-w-0">
+                        {ageHeatmap.map((item) => (
+                          <div
+                            key={`${item.label}-f`}
+                            className="h-10 rounded"
+                            title={`${item.female.toLocaleString()} 曝光`}
+                            style={{
+                              background: `rgba(66,133,244,${Math.max(
+                                0.12,
+                                item.female / heatmapMax
+                              )})`,
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -448,9 +452,9 @@ export default function ProjectAdsDashboard({
                   詳細列表
                 </Link>
               </div>
-              <div className="p-4">
+              <div className="p-4 overflow-x-auto">
                 {topKeywords.length > 0 ? (
-                  <table className="w-full text-xs">
+                  <table className="w-full text-xs min-w-[260px]">
                     <thead>
                       <tr className="text-[#5f6368] border-b border-[#f1f3f4]">
                         <th className="text-left font-normal pb-2">關鍵字</th>
@@ -460,8 +464,10 @@ export default function ProjectAdsDashboard({
                     <tbody>
                       {topKeywords.map((row) => (
                         <tr key={row.keyword} className="border-b border-[#f8f9fa]">
-                          <td className="py-2 text-[#1a73e8]">{row.keyword}</td>
-                          <td className="py-2 text-right">
+                          <td className="py-2 text-[#1a73e8] max-w-[180px] truncate">
+                            {row.keyword}
+                          </td>
+                          <td className="py-2 text-right tabular-nums">
                             {row.impressions.toLocaleString()}
                           </td>
                         </tr>
@@ -539,8 +545,8 @@ export default function ProjectAdsDashboard({
                 </div>
                 <Monitor size={16} className="text-[#5f6368]" />
               </div>
-              <div className="p-4">
-                <ChartContainer height={230}>
+              <div className="p-4 min-w-0">
+                <ChartContainer height={230} className="h-[200px] sm:h-[230px]">
                   <BarChart data={locationData} layout="vertical">
                     <XAxis
                       type="number"
@@ -549,8 +555,8 @@ export default function ProjectAdsDashboard({
                     <YAxis
                       type="category"
                       dataKey="location"
-                      width={90}
-                      tick={{ fontSize: 10, fill: "#5f6368" }}
+                      width={64}
+                      tick={{ fontSize: 9, fill: "#5f6368" }}
                     />
                     <Tooltip
                       formatter={(

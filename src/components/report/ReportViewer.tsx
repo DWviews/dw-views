@@ -49,7 +49,7 @@ function SlideWrapper({
 }) {
   return (
     <div
-      className="w-full aspect-[16/9] bg-[#F2F9FC] rounded-lg overflow-hidden shadow-lg relative"
+      className="w-full min-h-[70vh] md:min-h-0 md:aspect-[16/9] bg-[#F2F9FC] rounded-lg overflow-auto md:overflow-hidden shadow-lg relative"
       style={{ maxWidth: 1280 }}
     >
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#12377A] via-[#3D8BC1] to-[#6BAFD3]" />
@@ -98,17 +98,17 @@ function GradientBox({ title, children }: { title: string; children: React.React
 function Page1({ data }: { data: ReportData["page1"] }) {
   return (
     <SlideWrapper pageNum={1} total={9}>
-      <div className="flex flex-col items-center justify-center h-full px-10 relative">
+      <div className="flex flex-col items-center justify-center h-full px-4 sm:px-10 relative py-10 md:py-0">
         <div className="absolute top-[15%] right-[20%] w-[120px] h-[120px] rounded-full bg-[#6BAFD3] opacity-10" />
         <div className="absolute top-[60%] right-[15%] w-[80px] h-[80px] rounded-full bg-[#3D8BC1] opacity-10" />
         <div className="absolute top-[35%] right-[35%] w-[60px] h-[60px] rounded-full bg-[#12377A] opacity-8" />
         <div className="absolute bottom-8 right-10 text-[180px] font-extrabold text-[#12377A] opacity-[0.08] leading-none select-none">
           2026
         </div>
-        <h1 className="text-4xl font-extrabold text-[#12377A] text-center leading-tight tracking-tight whitespace-pre-line">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#12377A] text-center leading-tight tracking-tight whitespace-pre-line">
           {data.title}
         </h1>
-        <p className="text-xl text-[#3D8BC1] font-light mt-4">{data.subtitle}</p>
+        <p className="text-base sm:text-xl text-[#3D8BC1] font-light mt-4 text-center">{data.subtitle}</p>
         <p className="text-base text-[#858481] mt-6">{data.date}</p>
         <p className="absolute bottom-6 left-10 text-xs text-[#858481]">
           Marketing Report provided by Diamond Wise Company ©2026
@@ -121,9 +121,9 @@ function Page1({ data }: { data: ReportData["page1"] }) {
 function Page2({ data }: { data: ReportData["page2"] }) {
   return (
     <SlideWrapper pageNum={2} total={9}>
-      <div className="p-8 h-full">
-        <h2 className="text-2xl font-bold text-[#12377A] mb-5">Campaign Overview</h2>
-        <div className="grid grid-cols-2 gap-5 h-[calc(100%-60px)]">
+      <div className="p-4 sm:p-6 md:p-8 h-full min-h-[inherit]">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#12377A] mb-4 sm:mb-5">Campaign Overview</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:h-[calc(100%-60px)]">
           <div className="grid grid-cols-2 gap-3 content-start">
             {data.metrics.map((m) => (
               <div
@@ -132,7 +132,7 @@ function Page2({ data }: { data: ReportData["page2"] }) {
                 style={{ background: "rgba(18, 55, 122, 0.05)" }}
               >
                 <div className="text-xs text-[#858481] mb-1">{m.label}</div>
-                <div className="text-3xl font-bold text-[#12377A]">{m.value}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-[#12377A]">{m.value}</div>
               </div>
             ))}
           </div>
@@ -154,11 +154,11 @@ function Page2({ data }: { data: ReportData["page2"] }) {
 function Page3({ data }: { data: ReportData["page3"] }) {
   return (
     <SlideWrapper pageNum={3} total={9}>
-      <div className="p-8 h-full">
-        <h2 className="text-2xl font-bold text-[#12377A] mb-1">Day of Week Performance</h2>
+      <div className="p-4 sm:p-6 md:p-8 h-full min-h-[inherit]">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#12377A] mb-1">Day of Week Performance</h2>
         <p className="text-sm text-[#858481] mb-4">Weekly impression trends and engagement patterns</p>
-        <div className="grid grid-cols-5 gap-4 h-[calc(100%-80px)]">
-          <div className="col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:h-[calc(100%-80px)]">
+          <div className="md:col-span-3 min-w-0">
             <ResponsiveContainer width="100%" height="90%">
               <BarChart data={data.chartData}>
                 <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#12377A" }} axisLine={false} tickLine={false} />
@@ -172,7 +172,7 @@ function Page3({ data }: { data: ReportData["page3"] }) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="col-span-2 flex flex-col">
+          <div className="md:col-span-2 flex flex-col min-w-0">
             {data.insights.map((ins, i) => (
               <InsightCard key={i} {...ins} />
             ))}
@@ -187,11 +187,11 @@ function Page3({ data }: { data: ReportData["page3"] }) {
 function Page4({ data }: { data: ReportData["page4"] }) {
   return (
     <SlideWrapper pageNum={4} total={9}>
-      <div className="p-8 h-full">
-        <h2 className="text-2xl font-bold text-[#12377A] mb-1">Demographics Analysis</h2>
+      <div className="p-4 sm:p-6 md:p-8 h-full min-h-[inherit]">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#12377A] mb-1">Demographics Analysis</h2>
         <p className="text-sm text-[#858481] mb-4">Audience breakdown by age group and gender</p>
-        <div className="grid grid-cols-5 gap-4 h-[calc(100%-80px)]">
-          <div className="col-span-3 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:h-[calc(100%-80px)]">
+          <div className="md:col-span-3 space-y-3 min-w-0">
             <div className="h-[55%]">
               <div className="text-xs text-[#858481] mb-1">Age Distribution (Impressions)</div>
               <ResponsiveContainer width="100%" height="90%">
@@ -227,7 +227,7 @@ function Page4({ data }: { data: ReportData["page4"] }) {
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="col-span-2 flex flex-col">
+          <div className="md:col-span-2 flex flex-col min-w-0">
             {data.insights.map((ins, i) => (
               <InsightCard key={i} {...ins} />
             ))}
@@ -242,11 +242,11 @@ function Page4({ data }: { data: ReportData["page4"] }) {
 function Page5({ data }: { data: ReportData["page5"] }) {
   return (
     <SlideWrapper pageNum={5} total={9}>
-      <div className="p-8 h-full">
-        <h2 className="text-2xl font-bold text-[#12377A] mb-1">Device Performance</h2>
+      <div className="p-4 sm:p-6 md:p-8 h-full min-h-[inherit]">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#12377A] mb-1">Device Performance</h2>
         <p className="text-sm text-[#858481] mb-4">Impression volume and conversion efficiency by device</p>
-        <div className="grid grid-cols-5 gap-4 h-[calc(100%-80px)]">
-          <div className="col-span-3 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:h-[calc(100%-80px)]">
+          <div className="md:col-span-3 space-y-4 min-w-0">
             <div>
               <div className="text-xs text-[#858481] mb-1">Device Impressions Volume</div>
               <ResponsiveContainer width="100%" height={120}>
@@ -276,7 +276,7 @@ function Page5({ data }: { data: ReportData["page5"] }) {
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="col-span-2 flex flex-col">
+          <div className="md:col-span-2 flex flex-col min-w-0">
             {data.insights.map((ins, i) => (
               <InsightCard key={i} {...ins} />
             ))}
@@ -291,11 +291,11 @@ function Page5({ data }: { data: ReportData["page5"] }) {
 function Page6({ data }: { data: ReportData["page6"] }) {
   return (
     <SlideWrapper pageNum={6} total={9}>
-      <div className="p-8 h-full">
-        <h2 className="text-2xl font-bold text-[#12377A] mb-1">Geographic Distribution</h2>
+      <div className="p-4 sm:p-6 md:p-8 h-full min-h-[inherit]">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#12377A] mb-1">Geographic Distribution</h2>
         <p className="text-sm text-[#858481] mb-4">Impression volume across Hong Kong regions</p>
-        <div className="grid grid-cols-5 gap-4 h-[calc(100%-80px)]">
-          <div className="col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:h-[calc(100%-80px)]">
+          <div className="md:col-span-3 min-w-0">
             <ResponsiveContainer width="100%" height="85%">
               <BarChart data={data.chartData} layout="vertical">
                 <XAxis type="number" tick={{ fontSize: 10 }} />
@@ -309,7 +309,7 @@ function Page6({ data }: { data: ReportData["page6"] }) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="col-span-2 flex flex-col">
+          <div className="md:col-span-2 flex flex-col min-w-0">
             {data.insights.map((ins, i) => (
               <InsightCard key={i} {...ins} />
             ))}
@@ -324,11 +324,11 @@ function Page6({ data }: { data: ReportData["page6"] }) {
 function Page7({ data }: { data: ReportData["page7"] }) {
   return (
     <SlideWrapper pageNum={7} total={9}>
-      <div className="p-8 h-full">
-        <h2 className="text-2xl font-bold text-[#12377A] mb-1">Competitive Analysis</h2>
+      <div className="p-4 sm:p-6 md:p-8 h-full min-h-[inherit]">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#12377A] mb-1">Competitive Analysis</h2>
         <p className="text-sm text-[#858481] mb-4">Market share and visibility benchmarking</p>
-        <div className="grid grid-cols-5 gap-4 h-[calc(100%-80px)]">
-          <div className="col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:h-[calc(100%-80px)]">
+          <div className="md:col-span-3 min-w-0">
             <ResponsiveContainer width="100%" height="85%">
               <BarChart data={data.chartData}>
                 <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#12377A" }} axisLine={false} />
@@ -342,7 +342,7 @@ function Page7({ data }: { data: ReportData["page7"] }) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="col-span-2 flex flex-col">
+          <div className="md:col-span-2 flex flex-col min-w-0">
             {data.insights.map((ins, i) => (
               <InsightCard key={i} {...ins} />
             ))}
@@ -357,12 +357,12 @@ function Page7({ data }: { data: ReportData["page7"] }) {
 function Page8({ data }: { data: ReportData["page8"] }) {
   return (
     <SlideWrapper pageNum={8} total={9}>
-      <div className="p-8 h-full">
-        <h2 className="text-2xl font-bold text-[#12377A] mb-1">Optimization Opportunities</h2>
+      <div className="p-4 sm:p-6 md:p-8 h-full min-h-[inherit]">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#12377A] mb-1">Optimization Opportunities</h2>
         <p className="text-sm text-[#858481] mb-4">Strategic Recommendations for Performance Enhancement</p>
         <div className="space-y-3">
           {data.optimizations.map((opt) => (
-            <div key={opt.num} className="bg-white rounded-lg p-4 flex gap-4 shadow-sm">
+            <div key={opt.num} className="bg-white rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row gap-3 sm:gap-4 shadow-sm">
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0"
                 style={{ background: "linear-gradient(135deg, #12377A, #3D8BC1)" }}
@@ -373,7 +373,7 @@ function Page8({ data }: { data: ReportData["page8"] }) {
                 <div className="text-sm font-semibold text-[#12377A]">{opt.title}</div>
                 <div className="text-xs text-[#858481] mt-1 leading-relaxed">{opt.desc}</div>
               </div>
-              <div className="text-right shrink-0">
+              <div className="text-left sm:text-right shrink-0">
                 <div className="text-xs text-[#3D8BC1] font-medium">{opt.impact}</div>
                 <div className="text-[10px] text-[#858481] mt-1">{opt.time}</div>
               </div>
@@ -388,10 +388,10 @@ function Page8({ data }: { data: ReportData["page8"] }) {
 function Page9({ data, projectName }: { data: ReportData["page9"]; projectName: string }) {
   return (
     <SlideWrapper pageNum={9} total={9}>
-      <div className="p-8 h-full">
-        <h2 className="text-2xl font-bold text-[#12377A] mb-1">Methodology and Roadmap</h2>
+      <div className="p-4 sm:p-6 md:p-8 h-full min-h-[inherit]">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#12377A] mb-1">Methodology and Roadmap</h2>
         <p className="text-sm text-[#858481] mb-4">Data sources, analysis methodology, and implementation plan</p>
-        <div className="grid grid-cols-2 gap-5 h-[calc(100%-80px)]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:h-[calc(100%-80px)]">
           <div>
             <h3 className="text-sm font-semibold text-[#12377A] mb-3">Data Sources & Methodology</h3>
             {data.methodology.map((m, i) => (
@@ -486,8 +486,8 @@ export default function ReportViewer({
   ];
 
   return (
-    <div className="max-w-[1280px] mx-auto">
-      <div className="mb-4 rounded-lg border border-[#dadce0] bg-white p-4">
+    <div className="max-w-[1280px] mx-auto px-0 sm:px-0">
+      <div className="mb-4 rounded-lg border border-[#dadce0] bg-white p-3 sm:p-4">
         <h2 className="text-sm font-semibold text-[#12377A] mb-3">
           頁數對應內容
         </h2>
@@ -496,7 +496,7 @@ export default function ReportViewer({
             <button
               key={item.page}
               onClick={() => setCurrent(index)}
-              className={`rounded border px-3 py-2 text-left transition-colors ${
+              className={`rounded border px-3 py-2.5 text-left transition-colors min-h-11 ${
                 current === index
                   ? "border-[#12377A] bg-[#e8f0fe] text-[#12377A]"
                   : "border-[#dadce0] bg-[#F2F9FC] text-[#858481] hover:border-[#3D8BC1]"
@@ -509,19 +509,20 @@ export default function ReportViewer({
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-xl font-bold text-[#12377A]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl font-bold text-[#12377A] break-words">
             {projectName} 月度報告
             {reportMonth ? ` · ${reportMonth}` : ""}
           </h1>
           <p className="text-sm text-[#858481]">{report.project.dateRange}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setCurrent(Math.max(0, current - 1))}
             disabled={current === 0}
-            className="p-2 rounded-full hover:bg-white disabled:opacity-30 border border-[#dadce0]"
+            className="inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-full hover:bg-white disabled:opacity-30 border border-[#dadce0]"
+            aria-label="上一頁"
           >
             <ChevronLeft size={18} />
           </button>
@@ -531,14 +532,15 @@ export default function ReportViewer({
           <button
             onClick={() => setCurrent(Math.min(8, current + 1))}
             disabled={current === 8}
-            className="p-2 rounded-full hover:bg-white disabled:opacity-30 border border-[#dadce0]"
+            className="inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-full hover:bg-white disabled:opacity-30 border border-[#dadce0]"
+            aria-label="下一頁"
           >
             <ChevronRight size={18} />
           </button>
           <button
             onClick={handleExportPdf}
             disabled={exporting}
-            className="ml-2 flex items-center gap-1 text-sm text-[#12377A] border border-[#12377A] px-3 py-1.5 rounded hover:bg-[#e8f0fe] disabled:opacity-50"
+            className="flex items-center justify-center gap-1 text-sm text-[#12377A] border border-[#12377A] px-3 py-2 rounded hover:bg-[#e8f0fe] disabled:opacity-50 min-h-11"
           >
             <Download size={14} />
             {exporting ? "匯出中..." : "匯出 PDF"}
@@ -548,14 +550,15 @@ export default function ReportViewer({
 
       {pages[current]}
 
-      <div className="flex justify-center gap-2 mt-4">
+      <div className="flex justify-center gap-2 mt-4 pb-2">
         {pages.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrent(i)}
-            className={`w-2.5 h-2.5 rounded-full transition-colors ${
+            className={`w-3 h-3 rounded-full transition-colors ${
               i === current ? "bg-[#12377A]" : "bg-[#A8D5E5]"
             }`}
+            aria-label={`第 ${i + 1} 頁`}
           />
         ))}
       </div>

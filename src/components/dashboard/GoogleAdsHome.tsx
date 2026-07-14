@@ -144,7 +144,7 @@ export default function GoogleAdsHome() {
   return (
     <div className="bg-[#f1f3f4] min-h-full">
       {/* Page header bar */}
-      <div className="bg-white border-b border-[#dadce0] px-6 pt-3">
+      <div className="bg-white border-b border-[#dadce0] px-4 sm:px-6 pt-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-4">
             <button className="text-sm font-medium text-[#1a73e8] border-b-2 border-[#1a73e8] pb-2 px-1">
@@ -179,7 +179,7 @@ export default function GoogleAdsHome() {
         </div>
       </div>
 
-      <div className="px-6 py-4 max-w-[1600px] mx-auto">
+      <div className="px-4 sm:px-6 py-4 max-w-[1600px] mx-auto">
         {/* Add campaign button */}
         <Link
           href="/dashboard/campaigns"
@@ -191,11 +191,11 @@ export default function GoogleAdsHome() {
 
         {/* Main performance card */}
         <div className="bg-white border border-[#dadce0] rounded-lg mb-4 overflow-hidden">
-          <div className="flex items-stretch border-b border-[#dadce0]">
+          <div className="grid grid-cols-2 lg:grid-cols-4 items-stretch border-b border-[#dadce0]">
             {/* Metric pills */}
             <button
               onClick={() => setActiveMetric("clicks")}
-              className={`flex-1 px-5 py-4 text-left transition-colors ${
+              className={`px-4 sm:px-5 py-3 sm:py-4 text-left transition-colors min-w-0 ${
                 activeMetric === "clicks"
                   ? "bg-[#1a73e8] text-white"
                   : "bg-white hover:bg-[#f8f9fa]"
@@ -204,33 +204,33 @@ export default function GoogleAdsHome() {
               <div className={`text-xs mb-1 flex items-center gap-1 ${activeMetric === "clicks" ? "text-blue-100" : "text-[#5f6368]"}`}>
                 點擊 <ChevronDown size={12} />
               </div>
-              <div className="text-2xl font-normal">{totals.total_clicks.toLocaleString()}</div>
+              <div className="text-xl sm:text-2xl font-normal tabular-nums">{totals.total_clicks.toLocaleString()}</div>
             </button>
             <button
               onClick={() => setActiveMetric("conversions")}
-              className={`flex-1 px-5 py-4 text-left border-l border-[#dadce0] transition-colors ${
+              className={`px-4 sm:px-5 py-3 sm:py-4 text-left border-l border-[#dadce0] transition-colors min-w-0 ${
                 activeMetric === "conversions"
                   ? "bg-[#c5221f] text-white"
                   : "bg-white hover:bg-[#f8f9fa]"
               }`}
             >
               <div className={`text-xs mb-1 flex items-center gap-1 ${activeMetric === "conversions" ? "text-red-100" : "text-[#5f6368]"}`}>
-                新網站數據 (Purchase) <ChevronDown size={12} />
+                <span className="truncate">新網站數據 (Purchase)</span> <ChevronDown size={12} className="shrink-0" />
               </div>
-              <div className="text-2xl font-normal">{Math.round(totals.total_conversions * 10).toLocaleString()}</div>
+              <div className="text-xl sm:text-2xl font-normal tabular-nums">{Math.round(totals.total_conversions * 10).toLocaleString()}</div>
             </button>
-            <div className="flex-1 px-5 py-4 border-l border-[#dadce0]">
+            <div className="px-4 sm:px-5 py-3 sm:py-4 border-t lg:border-t-0 lg:border-l border-[#dadce0] min-w-0">
               <div className="text-xs text-[#5f6368] mb-1">單次轉換費用</div>
-              <div className="text-2xl font-normal text-[#202124]">${costPerConv}</div>
+              <div className="text-xl sm:text-2xl font-normal text-[#202124] tabular-nums">${costPerConv}</div>
             </div>
-            <div className="flex-1 px-5 py-4 border-l border-[#dadce0] flex items-start justify-between">
-              <div>
+            <div className="px-4 sm:px-5 py-3 sm:py-4 border-t lg:border-t-0 border-l border-[#dadce0] flex items-start justify-between min-w-0">
+              <div className="min-w-0">
                 <div className="text-xs text-[#5f6368] mb-1">費用</div>
-                <div className="text-2xl font-normal text-[#202124]">
+                <div className="text-xl sm:text-2xl font-normal text-[#202124] tabular-nums break-all">
                   ${totals.total_cost.toLocaleString()}
                 </div>
               </div>
-              <button className="p-1 hover:bg-[#f1f3f4] rounded-full mt-1">
+              <button className="p-2 hover:bg-[#f1f3f4] rounded-full mt-1 shrink-0 min-h-10 min-w-10 inline-flex items-center justify-center">
                 <MoreVertical size={16} className="text-[#5f6368]" />
               </button>
             </div>

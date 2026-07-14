@@ -98,7 +98,7 @@ export default function AdsDataPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-normal text-[#202124]">ADS 資料管理</h1>
@@ -163,13 +163,13 @@ export default function AdsDataPage() {
                   <div className="flex gap-1">
                     <button
                       onClick={() => openEdit(c)}
-                      className="p-1 hover:bg-[#e8f0fe] rounded"
+                      className="inline-flex items-center justify-center min-h-10 min-w-10 p-2 hover:bg-[#e8f0fe] rounded"
                     >
                       <Pencil size={14} className="text-[#1a73e8]" />
                     </button>
                     <button
                       onClick={() => handleDelete(c.id)}
-                      className="p-1 hover:bg-[#fce8e6] rounded"
+                      className="inline-flex items-center justify-center min-h-10 min-w-10 p-2 hover:bg-[#fce8e6] rounded"
                     >
                       <Trash2 size={14} className="text-[#d93025]" />
                     </button>
@@ -201,7 +201,7 @@ export default function AdsDataPage() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     廣告類型
@@ -251,7 +251,7 @@ export default function AdsDataPage() {
                 <h3 className="text-sm font-medium mb-3 text-[#5f6368]">
                   成效數據
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm mb-1">曝光次數</label>
                     <input

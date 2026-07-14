@@ -15,6 +15,7 @@ import {
   validateDailyTrend,
   validatePromo,
   isLongPromoRange,
+  alignTrendToTotals,
   type DailyTrendPoint,
   type DailyTrendPromoConfig,
   type WeekdayChartPoint,
@@ -158,6 +159,7 @@ export async function PATCH(
     promoStartDay?: number;
     promoEndDay?: number;
     weekdayChart?: WeekdayChartPoint[];
+    alignTotals?: boolean;
   };
 
   const daysInMonth = daysInReportMonth(
@@ -229,18 +231,31 @@ export async function PATCH(
     return NextResponse.json({ error: promoError }, { status: 400 });
   }
 
+  const totals = parseTotals(body);
+  const alignedPoints =
+    body.alignTotals &&
+    (totals.totalClicks > 0 || totals.totalConversions > 0)
+      ? alignTrendToTotals(
+          points,
+          totals.totalClicks,
+          totals.totalConversions
+        )
+      : points;
+
   await persistDashboardCharts(
     month.id,
-    { promo, points },
+    { promo, points: alignedPoints },
     body.weekdayChart
   );
 
   return NextResponse.json({
-    points,
+    points: alignedPoints,
     promo,
     daysInMonth,
     weekdayChart: await getWeekdayChartOverrides(month.id),
-    message: "已儲存圖表數值",
+    message: body.alignTotals
+      ? "已儲存並對齊點擊／轉換總數"
+      : "已儲存圖表數值",
     source: "saved",
   });
 }

@@ -111,8 +111,8 @@ export default function UsersAdminPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-xl font-normal text-[#202124]">帳號管理</h1>
           <p className="text-sm text-[#5f6368] mt-1">
@@ -187,13 +187,13 @@ export default function UsersAdminPage() {
                     <div className="flex gap-1">
                       <button
                         onClick={() => openEdit(u)}
-                        className="p-1 hover:bg-[#e8f0fe] rounded"
+                        className="inline-flex items-center justify-center min-h-10 min-w-10 p-2 hover:bg-[#e8f0fe] rounded"
                       >
                         <Pencil size={14} className="text-[#1a73e8]" />
                       </button>
                       <button
                         onClick={() => handleDelete(u.id)}
-                        className="p-1 hover:bg-[#fce8e6] rounded"
+                        className="inline-flex items-center justify-center min-h-10 min-w-10 p-2 hover:bg-[#fce8e6] rounded"
                       >
                         <Trash2 size={14} className="text-[#d93025]" />
                       </button>

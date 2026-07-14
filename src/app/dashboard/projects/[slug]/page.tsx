@@ -71,7 +71,7 @@ export default function ProjectMonthPickerPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-1 text-sm text-[#858481] hover:text-[#12377A] mb-4"
@@ -99,7 +99,7 @@ export default function ProjectMonthPickerPage() {
             return (
               <div
                 key={month.id}
-                className="bg-white border border-[#dadce0] rounded-lg p-4 flex items-center justify-between"
+                className="bg-white border border-[#dadce0] rounded-lg p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-[#e8f0fe] flex items-center justify-center text-[#12377A]">

@@ -66,18 +66,18 @@ export default function ProjectReportPage() {
   }
 
   return (
-    <div className="p-6 bg-[#F2F9FC] min-h-full">
-      <div className="flex items-center justify-between mb-4">
+    <div className="p-4 sm:p-6 bg-[#F2F9FC] min-h-full">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <Link
           href={projectPagePath(slug)}
-          className="inline-flex items-center gap-1 text-sm text-[#858481] hover:text-[#12377A]"
+          className="inline-flex items-center gap-1 text-sm text-[#858481] hover:text-[#12377A] min-h-10"
         >
           <ArrowLeft size={14} />
           返回月份選擇
         </Link>
         <Link
           href={projectPagePath(slug, `${monthId}/ads`)}
-          className="inline-flex items-center gap-2 bg-[#1a73e8] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#1557b0]"
+          className="inline-flex items-center justify-center gap-2 bg-[#1a73e8] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-[#1557b0] min-h-11"
         >
           <LayoutDashboard size={16} />
           查看數據儀表板

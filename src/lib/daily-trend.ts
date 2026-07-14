@@ -2,12 +2,13 @@ import "server-only";
 
 import { getSupabaseAdmin } from "./supabase";
 import {
+  alignTrendToTotals,
   daysInReportMonth,
-  generateAverageDailyTrend,
   generateDefaultDailyTrend,
   normalizePromo,
   parseDailyTrendRecord,
   parseWeekdayChart,
+  trendMatchesTotals,
   type DailyTrendPoint,
   type DailyTrendPromoConfig,
   type DailyTrendRecord,
@@ -22,6 +23,8 @@ export type {
 } from "./daily-trend-shared";
 
 export {
+  alignTrendToTotals,
+  applyDailyEditWithRedistribute,
   daysInReportMonth,
   defaultPromoRange,
   generateAverageDailyTrend,
@@ -30,6 +33,9 @@ export {
   normalizePromo,
   parseDailyTrendRecord,
   parseWeekdayChart,
+  sumTrendClicks,
+  sumTrendConversions,
+  trendMatchesTotals,
   validateDailyTrend,
   validatePromo,
 } from "./daily-trend-shared";
@@ -125,8 +131,23 @@ export async function resolveDailyTrend(
   const daysInMonth = daysInReportMonth(reportMonth, dateRange);
   const saved = await getDailyTrendRecord(monthId);
 
+  // 已存趨勢若天數正確且總和吻合 KPI，直接回傳；總和不符則保留形狀重比例對齊
   if (saved && saved.points.length === daysInMonth && !options?.promo) {
-    return saved;
+    if (trendMatchesTotals(saved.points, totalClicks, totalConversions)) {
+      return saved;
+    }
+    const aligned = {
+      promo: normalizePromo(saved.promo, daysInMonth),
+      points: alignTrendToTotals(
+        saved.points,
+        totalClicks,
+        totalConversions
+      ),
+    };
+    if (options?.persist !== false) {
+      await persistDashboardCharts(monthId, aligned, options?.weekdayChart);
+    }
+    return aligned;
   }
 
   const promo = normalizePromo(options?.promo ?? saved?.promo, daysInMonth);

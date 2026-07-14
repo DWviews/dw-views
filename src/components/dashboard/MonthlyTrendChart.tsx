@@ -16,7 +16,15 @@ import type {
   DailyTrendPromoConfig,
   WeekdayChartPoint,
 } from "@/lib/daily-trend-shared";
-import { defaultPromoRange, formatDayAxisLabel, LONG_PROMO_DAY_THRESHOLD } from "@/lib/daily-trend-shared";
+import {
+  applyDailyEditWithRedistribute,
+  defaultPromoRange,
+  formatDayAxisLabel,
+  LONG_PROMO_DAY_THRESHOLD,
+  sumTrendClicks,
+  sumTrendConversions,
+  trendMatchesTotals,
+} from "@/lib/daily-trend-shared";
 import ChartContainer from "@/components/dashboard/ChartContainer";
 
 interface MonthlyTrendChartProps {
@@ -119,6 +127,15 @@ export default function MonthlyTrendChart({
   );
   const promoEndLabel = formatDayAxisLabel(reportMonth, activePromo.promoEndDay);
 
+  const activePoints = editing ? draft : points;
+  const draftClicksSum = sumTrendClicks(activePoints);
+  const draftConvSum = sumTrendConversions(activePoints);
+  const totalsAligned = trendMatchesTotals(
+    activePoints,
+    totalClicks,
+    totalConversions
+  );
+
   async function handleSave() {
     setSaving(true);
     setMessage("");
@@ -135,6 +152,9 @@ export default function MonthlyTrendChart({
           promoStartDay: draftPromo.promoStartDay,
           promoEndDay: draftPromo.promoEndDay,
           weekdayChart: weekdaySeed,
+          totalClicks,
+          totalConversions,
+          alignTotals: true,
         }),
       });
       setPoints(data.points);
@@ -227,7 +247,34 @@ export default function MonthlyTrendChart({
     }
   }
 
-  function updateDraft(
+  function commitDraftEdit(
+    day: number,
+    field: "clicks" | "conversions",
+    value: string
+  ) {
+    const target = field === "clicks" ? totalClicks : totalConversions;
+    const nextRaw = Number(value) || 0;
+    const nextValue =
+      field === "clicks"
+        ? Math.max(0, Math.round(nextRaw))
+        : Math.max(0, Math.round(nextRaw * 10) / 10);
+
+    setDraft((prev) => {
+      const current = prev.find((point) => point.day === day);
+      if (!current || Number(current[field]) === nextValue) {
+        return prev;
+      }
+      return applyDailyEditWithRedistribute(
+        prev,
+        day,
+        field,
+        nextValue,
+        target
+      );
+    });
+  }
+
+  function previewDraftEdit(
     day: number,
     field: "clicks" | "conversions",
     value: string
@@ -253,8 +300,8 @@ export default function MonthlyTrendChart({
 
   return (
     <div>
-      <div className="flex items-center justify-between px-4 py-2 border-b border-[#f1f3f4] bg-[#fafafa]">
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-3 sm:px-4 py-2 border-b border-[#f1f3f4] bg-[#fafafa]">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
           <span className="text-xs font-medium text-[#202124]">
             月度趨勢（1–{daysInMonth} 日）
           </span>
@@ -270,14 +317,14 @@ export default function MonthlyTrendChart({
           )}
         </div>
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             {!editing ? (
               <>
                 <button
                   type="button"
                   onClick={handleAverageReset}
                   disabled={saving}
-                  className="inline-flex items-center gap-1 text-xs text-[#5f6368] hover:bg-[#f1f3f4] px-2 py-1 rounded disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-xs text-[#5f6368] hover:bg-[#f1f3f4] px-2.5 py-2 rounded min-h-9 disabled:opacity-50"
                 >
                   <Activity size={12} />
                   Reset（平均趨勢）
@@ -290,7 +337,7 @@ export default function MonthlyTrendChart({
                     setEditing(true);
                     setMessage("");
                   }}
-                  className="inline-flex items-center gap-1 text-xs text-[#1a73e8] hover:bg-[#e8f0fe] px-2 py-1 rounded"
+                  className="inline-flex items-center gap-1 text-xs text-[#1a73e8] hover:bg-[#e8f0fe] px-2.5 py-2 rounded min-h-9"
                 >
                   <Pencil size={12} />
                   編輯趨勢線
@@ -302,7 +349,7 @@ export default function MonthlyTrendChart({
                   type="button"
                   onClick={handleSave}
                   disabled={saving}
-                  className="inline-flex items-center gap-1 text-xs bg-[#1a73e8] text-white px-2.5 py-1 rounded disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-xs bg-[#1a73e8] text-white px-2.5 py-2 rounded min-h-9 disabled:opacity-50"
                 >
                   <Save size={12} />
                   儲存
@@ -311,7 +358,7 @@ export default function MonthlyTrendChart({
                   type="button"
                   onClick={handleReset}
                   disabled={saving}
-                  className="inline-flex items-center gap-1 text-xs text-[#5f6368] hover:bg-[#f1f3f4] px-2 py-1 rounded"
+                  className="inline-flex items-center gap-1 text-xs text-[#5f6368] hover:bg-[#f1f3f4] px-2.5 py-2 rounded min-h-9"
                 >
                   <RotateCcw size={12} />
                   自動生成
@@ -320,7 +367,7 @@ export default function MonthlyTrendChart({
                   type="button"
                   onClick={handleAverageReset}
                   disabled={saving}
-                  className="inline-flex items-center gap-1 text-xs text-[#5f6368] hover:bg-[#f1f3f4] px-2 py-1 rounded disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-xs text-[#5f6368] hover:bg-[#f1f3f4] px-2.5 py-2 rounded min-h-9 disabled:opacity-50"
                 >
                   <Activity size={12} />
                   Reset（平均趨勢）
@@ -333,7 +380,7 @@ export default function MonthlyTrendChart({
                     setEditing(false);
                     setMessage("");
                   }}
-                  className="inline-flex items-center gap-1 text-xs text-[#5f6368] hover:bg-[#f1f3f4] px-2 py-1 rounded"
+                  className="inline-flex items-center gap-1 text-xs text-[#5f6368] hover:bg-[#f1f3f4] px-2.5 py-2 rounded min-h-9"
                 >
                   <X size={12} />
                   取消
@@ -404,13 +451,13 @@ export default function MonthlyTrendChart({
         </div>
       )}
 
-      <div className="p-4">
+      <div className="p-3 sm:p-4 min-w-0">
         {chartData.length === 0 ? (
-          <div className="h-[300px] flex items-center justify-center text-sm text-[#5f6368]">
+          <div className="h-[240px] sm:h-[300px] flex items-center justify-center text-sm text-[#5f6368]">
             {message || "尚無趨勢資料"}
           </div>
         ) : (
-          <ChartContainer height={300}>
+          <ChartContainer height={280} className="h-[240px] sm:h-[300px]">
             <LineChart data={chartData}>
               <ReferenceArea
                 x1={promoStartLabel}
@@ -421,24 +468,26 @@ export default function MonthlyTrendChart({
               />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 9, fill: "#5f6368" }}
+                tick={{ fontSize: 8, fill: "#5f6368" }}
                 axisLine={false}
                 tickLine={false}
-                interval={Math.max(0, Math.floor(daysInMonth / 10))}
+                interval={Math.max(0, Math.floor(daysInMonth / 6))}
                 angle={-42}
                 textAnchor="end"
-                height={52}
+                height={48}
               />
               <YAxis
                 yAxisId="left"
-                tick={{ fontSize: 11, fill: "#5f6368" }}
+                width={40}
+                tick={{ fontSize: 10, fill: "#5f6368" }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 yAxisId="right"
                 orientation="right"
-                tick={{ fontSize: 11, fill: "#5f6368" }}
+                width={36}
+                tick={{ fontSize: 10, fill: "#5f6368" }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -483,8 +532,21 @@ export default function MonthlyTrendChart({
 
       {isAdmin && editing && (
         <div className="border-t border-[#f1f3f4] px-4 py-3 bg-[#f8f9fa] max-h-48 overflow-y-auto">
-          <p className="text-xs text-[#5f6368] mb-2">
-            每日數值（儲存後同步記錄至資料庫）
+          <p className="text-xs text-[#5f6368] mb-1">
+            每日數值（單獨改完離開欄位後，增減量會隨機分攤到同月其他日子，總數與
+            KPI 維持吻合）
+          </p>
+          <p
+            className={`text-xs mb-2 ${
+              totalsAligned ? "text-[#1e8e3e]" : "text-[#d93025]"
+            }`}
+          >
+            日線合計：點擊 {draftClicksSum.toLocaleString()} / KPI{" "}
+            {Math.round(totalClicks).toLocaleString()}
+            {" · "}
+            轉換 {draftConvSum.toFixed(1)} / KPI{" "}
+            {(Math.round(totalConversions * 10) / 10).toFixed(1)}
+            {totalsAligned ? "（已吻合）" : "（編輯中／儲存時會對齊）"}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
             {draft.map((point) => {
@@ -513,8 +575,16 @@ export default function MonthlyTrendChart({
                       min={0}
                       value={point.clicks}
                       onChange={(e) =>
-                        updateDraft(point.day, "clicks", e.target.value)
+                        previewDraftEdit(point.day, "clicks", e.target.value)
                       }
+                      onBlur={(e) =>
+                        commitDraftEdit(point.day, "clicks", e.target.value)
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          (e.target as HTMLInputElement).blur();
+                        }
+                      }}
                       className="w-full border border-[#dadce0] rounded px-1 py-0.5 text-[#202124]"
                     />
                   </label>
@@ -526,8 +596,24 @@ export default function MonthlyTrendChart({
                       step={0.1}
                       value={point.conversions}
                       onChange={(e) =>
-                        updateDraft(point.day, "conversions", e.target.value)
+                        previewDraftEdit(
+                          point.day,
+                          "conversions",
+                          e.target.value
+                        )
                       }
+                      onBlur={(e) =>
+                        commitDraftEdit(
+                          point.day,
+                          "conversions",
+                          e.target.value
+                        )
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          (e.target as HTMLInputElement).blur();
+                        }
+                      }}
                       className="w-full border border-[#dadce0] rounded px-1 py-0.5 text-[#202124]"
                     />
                   </label>

@@ -44,7 +44,7 @@ export default function LoginPage() {
       <LoginHero />
 
       {/* Right panel - Login form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
+      <div className="flex-1 flex items-center justify-center p-5 sm:p-8 bg-white">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <div className="w-8 h-8 bg-[#1a73e8] rounded-lg flex items-center justify-center">

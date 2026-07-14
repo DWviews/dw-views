@@ -20,30 +20,20 @@ export default function ChartContainer({
     return () => cancelAnimationFrame(id);
   }, []);
 
-  if (!ready) {
-    return (
-      <div
-        className={className}
-        style={{
-          height: typeof height === "number" ? height : undefined,
-          minHeight: typeof height === "number" ? height : 200,
-        }}
-      />
-    );
-  }
-
   return (
     <div
-      className={className}
+      className={`w-full min-w-0 ${className ?? ""}`}
       style={{
         width: "100%",
         height: typeof height === "number" ? height : height,
         minHeight: typeof height === "number" ? height : 200,
       }}
     >
-      <ResponsiveContainer width="100%" height="100%">
-        {children}
-      </ResponsiveContainer>
+      {ready ? (
+        <ResponsiveContainer width="100%" height="100%">
+          {children}
+        </ResponsiveContainer>
+      ) : null}
     </div>
   );
 }

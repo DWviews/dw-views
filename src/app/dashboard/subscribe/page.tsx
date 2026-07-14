@@ -111,7 +111,7 @@ export default function SubscribePage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 bg-[#e8f0fe] text-[#12377A] px-3 py-1 rounded-full text-xs font-medium mb-4">
           <Sparkles size={14} />
@@ -206,7 +206,7 @@ export default function SubscribePage() {
       </div>
 
       {/* Feature highlights */}
-      <div className="mt-12 grid sm:grid-cols-3 gap-4">
+      <div className="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           {
             icon: <Bell size={20} />,
@@ -244,7 +244,7 @@ export default function SubscribePage() {
       </p>
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#12377A] text-white px-6 py-3 rounded-lg shadow-lg text-sm z-50">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#12377A] text-white px-4 sm:px-6 py-3 rounded-lg shadow-lg text-sm z-50 max-w-[calc(100%-2rem)] text-center">
           {toast}
         </div>
       )}

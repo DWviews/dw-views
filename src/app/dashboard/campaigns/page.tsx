@@ -125,7 +125,7 @@ export default function CampaignsPage() {
   const totalImpressions = filtered.reduce((s, c) => s + c.impressions, 0);
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Toolbar */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -242,7 +242,7 @@ export default function CampaignsPage() {
                       {canEdit && (
                         <button
                           onClick={() => openEdit(c)}
-                          className="p-1 hover:bg-[#e8f0fe] rounded"
+                          className="inline-flex items-center justify-center min-h-10 min-w-10 p-2 hover:bg-[#e8f0fe] rounded"
                         >
                           <Pencil size={14} className="text-[#1a73e8]" />
                         </button>
@@ -250,7 +250,7 @@ export default function CampaignsPage() {
                       {canDelete && (
                         <button
                           onClick={() => handleDelete(c.id)}
-                          className="p-1 hover:bg-[#fce8e6] rounded"
+                          className="inline-flex items-center justify-center min-h-10 min-w-10 p-2 hover:bg-[#fce8e6] rounded"
                         >
                           <Trash2 size={14} className="text-[#d93025]" />
                         </button>
@@ -341,7 +341,7 @@ export default function CampaignsPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">點擊</label>
                   <input

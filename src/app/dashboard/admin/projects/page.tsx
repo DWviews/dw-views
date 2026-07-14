@@ -502,7 +502,7 @@ export default function AdminProjectsPage() {
   }, [selectedSlug, selectedMonthId, months]);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-1 text-sm text-[#858481] hover:text-[#12377A] mb-4"
@@ -511,14 +511,14 @@ export default function AdminProjectsPage() {
         返回首頁
       </Link>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-[#12377A]">專案管理</h1>
           <p className="text-sm text-[#858481]">管理專案月份、上傳 CSV、Approve Views 權限</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-[#12377A] text-white px-4 py-2 rounded-lg text-sm"
+          className="inline-flex items-center justify-center gap-2 bg-[#12377A] text-white px-4 py-2.5 rounded-lg text-sm min-h-11"
         >
           <Plus size={16} />
           新增專案
@@ -531,7 +531,7 @@ export default function AdminProjectsPage() {
           className="bg-white border border-[#dadce0] rounded-lg p-5 mb-6"
         >
           <h3 className="text-sm font-semibold text-[#12377A] mb-3">建立新專案</h3>
-          <div className="grid grid-cols-3 gap-3 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
             <input className="gads-input" placeholder="專案名稱" value={newName} onChange={(e) => setNewName(e.target.value)} required />
             <input className="gads-input" placeholder="廣告活動名稱" value={newCampaign} onChange={(e) => setNewCampaign(e.target.value)} />
             <input className="gads-input" placeholder="首個報告月份" value={newMonth} onChange={(e) => setNewMonth(e.target.value)} />
@@ -543,8 +543,8 @@ export default function AdminProjectsPage() {
         </form>
       )}
 
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+        <div className="lg:col-span-3">
           <h3 className="text-sm font-semibold text-[#12377A] mb-2">專案列表</h3>
           <div className="space-y-2">
             {projects.map((p) => (
@@ -567,7 +567,7 @@ export default function AdminProjectsPage() {
           </div>
         </div>
 
-        <div className="col-span-4">
+        <div className="lg:col-span-4">
           {selected ? (
             <div className="bg-white border border-[#dadce0] rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
@@ -631,7 +631,7 @@ export default function AdminProjectsPage() {
           )}
         </div>
 
-        <div className="col-span-5">
+        <div className="lg:col-span-5">
           {selected && selectedMonth ? (
             <div className="bg-white border border-[#dadce0] rounded-lg p-5">
               <div className="flex items-start justify-between gap-3 mb-4">
@@ -762,7 +762,7 @@ export default function AdminProjectsPage() {
                       )}
                     </select>
                   </div>
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <div className="flex items-center justify-between mb-1">
                       <label className="text-xs text-[#858481]">
                         相似度 (%)
@@ -815,7 +815,7 @@ export default function AdminProjectsPage() {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
                   <button
                     onClick={handleRandomizeReport}
                     disabled={

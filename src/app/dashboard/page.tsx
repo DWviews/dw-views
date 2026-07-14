@@ -43,8 +43,8 @@ export default function DashboardPage() {
   const isViewer = user?.role === "viewer";
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
         <div>
           <h1 className="text-2xl font-bold text-[#12377A]">DW VIEWS</h1>
           <p className="text-sm text-[#858481] mt-1">關鍵字搜尋月度報告系統</p>
@@ -52,7 +52,7 @@ export default function DashboardPage() {
         {isAdmin && (
           <Link
             href="/dashboard/admin/projects"
-            className="flex items-center gap-2 bg-[#12377A] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#0d2a5e] transition-colors"
+            className="inline-flex items-center justify-center gap-2 bg-[#12377A] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-[#0d2a5e] transition-colors min-h-11"
           >
             <Plus size={16} />
             新增專案 / 上傳 CSV
@@ -99,17 +99,17 @@ export default function DashboardPage() {
             <Link
               key={p.slug}
               href={projectPagePath(p.slug)}
-              className="bg-white border border-[#dadce0] rounded-lg p-5 hover:shadow-md transition-shadow flex items-center justify-between group"
+              className="bg-white border border-[#dadce0] rounded-lg p-4 sm:p-5 hover:shadow-md transition-shadow flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between group"
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                 <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg shrink-0"
                   style={{ background: "linear-gradient(135deg, #12377A, #3D8BC1)" }}
                 >
                   {p.name.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#12377A] group-hover:text-[#3D8BC1]">
+                  <h3 className="text-base font-semibold text-[#12377A] group-hover:text-[#3D8BC1] break-words">
                     {p.name} Google Ads Monthly Report
                   </h3>
                   <p className="text-sm text-[#858481]">{p.campaign_name}</p>

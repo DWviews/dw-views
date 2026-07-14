@@ -108,6 +108,116 @@ function distributeByWeights(
   });
 }
 
+function roundMetric(value: number, decimals: number): number {
+  const factor = decimals > 0 ? 10 ** decimals : 1;
+  return Math.max(0, Math.round(value * factor) / factor);
+}
+
+export function sumTrendClicks(points: DailyTrendPoint[]): number {
+  return points.reduce((sum, point) => sum + (Number(point.clicks) || 0), 0);
+}
+
+export function sumTrendConversions(points: DailyTrendPoint[]): number {
+  return roundMetric(
+    points.reduce((sum, point) => sum + (Number(point.conversions) || 0), 0),
+    1
+  );
+}
+
+export function trendMatchesTotals(
+  points: DailyTrendPoint[],
+  totalClicks: number,
+  totalConversions: number
+): boolean {
+  if (points.length === 0) return false;
+  const clicksTarget = Math.max(0, Math.round(totalClicks));
+  const conversionsTarget = roundMetric(totalConversions, 1);
+  return (
+    sumTrendClicks(points) === clicksTarget &&
+    Math.abs(sumTrendConversions(points) - conversionsTarget) < 0.05
+  );
+}
+
+/** 依現有形狀重比例對齊月度點擊／轉換總數 */
+export function alignTrendToTotals(
+  points: DailyTrendPoint[],
+  totalClicks: number,
+  totalConversions: number
+): DailyTrendPoint[] {
+  if (points.length === 0) return [];
+
+  const clicksTarget = Math.max(0, Math.round(totalClicks));
+  const conversionsTarget = roundMetric(totalConversions, 1);
+  const clickWeights = points.map((point) =>
+    Math.max(0.01, Number(point.clicks) || 0)
+  );
+  const clicks = distributeByWeights(clicksTarget, clickWeights, 0);
+  const conversionWeights = points.map((point, index) =>
+    Math.max(
+      0.001,
+      Number(point.conversions) > 0
+        ? Number(point.conversions)
+        : clicks[index] * 0.01
+    )
+  );
+  const conversions = distributeByWeights(
+    conversionsTarget,
+    conversionWeights,
+    1
+  );
+
+  return points.map((point, index) => ({
+    day: point.day,
+    clicks: clicks[index],
+    conversions: conversions[index],
+  }));
+}
+
+/**
+ * 單獨改某一日後，把增減差額隨機分攤到同月其他日子，
+ * 使整月點擊／轉換總和維持與 KPI 吻合。
+ */
+export function applyDailyEditWithRedistribute(
+  points: DailyTrendPoint[],
+  day: number,
+  field: "clicks" | "conversions",
+  rawValue: number,
+  targetTotal: number
+): DailyTrendPoint[] {
+  if (points.length === 0) return points;
+
+  const decimals = field === "clicks" ? 0 : 1;
+  const target = roundMetric(targetTotal, decimals);
+  const nextValue = roundMetric(rawValue, decimals);
+  const editedIndex = points.findIndex((point) => point.day === day);
+  if (editedIndex < 0) return points;
+
+  if (points.length === 1) {
+    return [{ ...points[0], [field]: target }];
+  }
+
+  const clampedEdited = Math.min(nextValue, target);
+  const remainder = roundMetric(target - clampedEdited, decimals);
+  const otherIndexes = points
+    .map((_, index) => index)
+    .filter((index) => index !== editedIndex);
+
+  // 以現值為底，再加隨機權重，把剩餘量隨機分到其他日
+  const weights = otherIndexes.map((index) => {
+    const current = Math.max(0, Number(points[index][field]) || 0);
+    return Math.max(0.05, current * (0.35 + Math.random() * 1.3) + Math.random());
+  });
+  const distributed = distributeByWeights(remainder, weights, decimals);
+
+  return points.map((point, index) => {
+    if (index === editedIndex) {
+      return { ...point, [field]: clampedEdited };
+    }
+    const otherPos = otherIndexes.indexOf(index);
+    return { ...point, [field]: distributed[otherPos] };
+  });
+}
+
 const WEEKDAY_NAMES = [
   "Sunday",
   "Monday",

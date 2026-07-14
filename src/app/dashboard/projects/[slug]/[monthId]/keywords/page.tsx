@@ -174,18 +174,18 @@ export default function ProjectKeywordsPage() {
   }
 
   return (
-    <div className="min-h-full bg-[#f1f3f4] p-6">
+    <div className="min-h-full bg-[#f1f3f4] p-4 sm:p-6">
       <div className="max-w-[1500px] mx-auto">
         <Link
           href={projectPagePath(slug, `${monthId}/ads`)}
-          className="inline-flex items-center gap-1 text-sm text-[#5f6368] hover:text-[#1a73e8] mb-4"
+          className="inline-flex items-center gap-1 text-sm text-[#5f6368] hover:text-[#1a73e8] mb-4 min-h-10"
         >
           <ArrowLeft size={14} />
           返回儀表板
         </Link>
 
         <div className="bg-white border border-[#dadce0] rounded-xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#dadce0] flex flex-wrap items-start justify-between gap-4">
+          <div className="px-4 sm:px-6 py-4 border-b border-[#dadce0] flex flex-col sm:flex-row sm:flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-lg font-medium text-[#202124]">
                 {projectName} — 關鍵字詳細列表
@@ -242,7 +242,7 @@ export default function ProjectKeywordsPage() {
               尚無關鍵字資料，請於專案管理上傳每月關鍵字報告（CSV 或 Excel）
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto gads-table-scroll -mx-4 px-4 sm:mx-0 sm:px-0">
               <table className="w-full text-sm">
                 <thead className="bg-[#f8f9fa] text-[#5f6368]">
                   <tr>
