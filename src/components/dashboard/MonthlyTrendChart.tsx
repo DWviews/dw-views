@@ -179,7 +179,7 @@ export default function MonthlyTrendChart({
       setDraft(data.points);
       setDraftPromo(data.promo);
       setEditing(false);
-      setMessage(data.message || "已重設為平均趨勢（保留閃電起伏）");
+      setMessage(data.message || "已重設為平均趨勢（輕微起伏）");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "平均趨勢重設失敗");
     } finally {

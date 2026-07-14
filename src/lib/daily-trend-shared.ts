@@ -389,7 +389,15 @@ export function generateDefaultDailyTrend(
   }));
 }
 
-/** 平均趨勢：各日均衡分配，不區分優惠期，仍保留閃電式高低起伏 */
+/** 平均模式用輕微起伏，避免某一日因公式巧合變成極端尖峰 */
+function mildDailyVariation(day: number, metric: "clicks" | "conversions"): number {
+  const phase = metric === "clicks" ? 0.37 : 1.13;
+  const wave =
+    Math.sin(day * 0.9 + phase) * 0.1 + Math.sin(day * 0.31 + phase * 2) * 0.06;
+  return Math.max(0.85, Math.min(1.15, 1 + wave));
+}
+
+/** 平均趨勢：各日接近均衡分配，不區分優惠期，只保留輕微波浪 */
 export function generateAverageDailyTrend(
   totalClicks: number,
   totalConversions: number,
@@ -400,7 +408,8 @@ export function generateAverageDailyTrend(
   const reportMonth = context.reportMonth || "January 2026";
 
   function mildWeekdayInfluence(weight: number): number {
-    return 0.88 + weight * 0.24;
+    // 星期影響縮得更細，避免某一星期日長期霸佔高峰
+    return 0.96 + weight * 0.08;
   }
 
   const clickWeights = Array.from({ length: daysInMonth }, (_, index) => {
@@ -408,16 +417,16 @@ export function generateAverageDailyTrend(
     const weekday = getWeekdayNameForDay(reportMonth, day);
     const weekdayWeight = weekdayWeights[weekday] ?? 1 / 7;
     const weekdayMult = mildWeekdayInfluence(weekdayWeight);
-    const spike = lightningSpike(day, "clicks");
-    return Math.max(0.1, weekdayMult * spike);
+    const variation = mildDailyVariation(day, "clicks");
+    return Math.max(0.7, weekdayMult * variation);
   });
 
   const clicks = distributeByWeights(totalClicks, clickWeights, 0);
 
   const conversionWeights = clicks.map((clickValue, index) => {
     const day = index + 1;
-    const spike = lightningSpike(day, "conversions");
-    return Math.max(0.05, clickValue * spike);
+    const variation = mildDailyVariation(day, "conversions");
+    return Math.max(0.5, clickValue * variation);
   });
 
   const conversions = distributeByWeights(totalConversions, conversionWeights, 1);

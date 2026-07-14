@@ -210,7 +210,7 @@ export async function PATCH(
       weekdayChart: await getWeekdayChartOverrides(month.id),
       message: isAverage
         ? body.resetMode === "average"
-          ? "已重設為平均趨勢（保留閃電起伏）並儲存"
+          ? "已重設為平均趨勢（輕微起伏）並儲存"
           : `優惠期超過 24 日，已平均分佈至 1–${daysInMonth} 日並儲存`
         : `已依優惠期（${promo.promoStartDay}–${promo.promoEndDay} 日）自動生成並儲存趨勢數值`,
       source: "saved",
