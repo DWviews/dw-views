@@ -1,111 +1,67 @@
 # DW VIEWS
 
-關鍵字搜尋月度報告系統 — 上傳 Google Ads CSV 資料，自動產生 9 頁鈷藍色月度分析報告。
+**Enterprise Google Ads Analytics Platform**
 
-## 快速開始
+由 Diamond Wise 打造的企業級搜尋廣告績效分析平台，協助品牌與代理商將廣告數據轉化為可行動的月度洞察報告。
 
-### 1. 設定 Supabase 資料庫
+---
 
-1. 在 [Supabase](https://supabase.com) 建立專案
-2. 進入 SQL Editor，執行 `supabase/migrations/001_initial_schema.sql`
-3. 複製 `.env.example` 為 `.env.local` 並填入 Supabase 金鑰
+## 系統簡介
 
-```bash
-cp .env.example .env.local
-```
-  
-### 2. 本地開發
+DW VIEWS 專為 Google Ads 關鍵字搜尋廣告設計，提供從數據匯入、績效分析到報告產出的一站式工作流程。平台支援多專案、多月份管理，並依角色控管資料存取權限，適合中小企業、品牌行銷團隊與廣告代理商使用。
 
-```bash
-npm install
-npm run dev
-```
+### 核心能力
 
-開啟 http://localhost:3000
-
-### 3. 從 SQLite 遷移既有資料（可選）
-
-若你有舊的 `data/dw-views.db`：
-
-```bash
-npm install better-sqlite3 --no-save
-npx tsx scripts/migrate-sqlite-to-supabase.ts
-```
-
-## 預設管理員
-
-首次啟動時系統會自動建立：
-
-| 帳號 | 密碼 |
+| 模組 | 說明 |
 |------|------|
-| ADMIN ACC | admin123 |
+| **專案管理** | 依品牌／產品建立獨立專案，支援多月份報表存檔與比較 |
+| **績效儀表板** | 即時呈現曝光、點擊、轉換、費用等關鍵 KPI |
+| **洞察報告** | 自動產出專業級月度分析報告，涵蓋活動、客層、裝置、地區與競價洞察 |
+| **關鍵字分析** | 管理與調整關鍵字數據，支援匯入與匯出 |
+| **權限控管** | 管理員、編輯、檢視者三級角色，報告發布前可限制檢視權限 |
+| **報告匯出** | 支援 PDF 匯出，便於對內分享與對客戶簡報 |
 
-## Vercel 部署
+### 報告內容概覽
 
-### 方式 A：透過網頁（推薦）
+完整月度報告共 9 頁，涵蓋：
 
-1. 將程式碼推到 [GitHub](https://github.com)
-2. 登入 [vercel.com](https://vercel.com) → **Add New Project**
-3. 匯入你的 GitHub repo
-4. 在 **Environment Variables** 加入：
+1. 封面頁  
+2. 活動概覽與 KPI 洞察  
+3. 星期／時段表現分析  
+4. 人口統計客層分析  
+5. 設備性能分析  
+6. 地理分布分析  
+7. 競價與市場份額分析  
+8. 優化建議與策略  
+9. 方法論與實施路線圖  
 
-| 變數 | 說明 |
-|------|------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 專案 URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
-| `JWT_SECRET` | 隨機長字串（生產環境必設） |
+---
 
-5. 點 **Deploy**，完成後會得到 `https://你的專案.vercel.app`
+## 適用對象
 
-### 方式 B：透過 CLI
+- 中小企業行銷負責人  
+- Google Ads 投放代理商  
+- 需要定期對客戶／內部匯報廣告績效的團隊  
 
-```bash
-npm i -g vercel
-vercel login
-vercel
-```
-
-依提示設定環境變數，之後更新部署：
-
-```bash
-vercel --prod
-```
-
-### PDF 匯出說明
-
-PDF 功能使用 Playwright Chromium，在 Vercel 無伺服器環境可能無法運作（套件體積與執行時間限制）。本地開發與其他自架環境可正常使用。其餘功能（登入、CSV 上傳、報告、圖表）在 Vercel 上均可正常使用。
-
-## 使用流程
-
-1. 以管理員登入
-2. 進入「專案管理」建立新專案（如 NMN）
-3. 上傳 6 個 CSV 檔案：
-
-| 檔案 | 內容 | 對應報告頁 |
-|------|------|-----------|
-| 01.csv | 活動績效 | 第2頁 活動概覽 |
-| 02.csv | 每日曝光 | 第3頁 星期分析 |
-| 03.csv | 人口統計 | 第4頁 客層分析 |
-| 04.csv | 設備數據 | 第5頁 設備性能 |
-| 05.csv | 地理分布 | 第6頁 地理分析 |
-| 06.csv | 競爭分析 | 第7頁 競價分析 |
-
-4. 上傳完成後點擊專案查看 9 頁月度報告
+---
 
 ## 技術架構
 
-- **前端**: Next.js 15 + React 19 + Tailwind CSS 4
-- **資料庫**: Supabase (PostgreSQL)
-- **部署**: Vercel
-- **認證**: JWT + bcrypt
-- **報表**: CSV 解析引擎 + Recharts 圖表 + Playwright PDF（本地）
-
-## 環境變數
-
-| 變數 | 說明 |
+| 層級 | 技術 |
 |------|------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 專案 URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key（公開） |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key（僅伺服器） |
-| `JWT_SECRET` | JWT 簽章密鑰（生產環境必設） |
+| 前端應用 | Next.js 15 · React 19 · Tailwind CSS 4 |
+| 資料庫 | Supabase（PostgreSQL） |
+| 部署 | Vercel |
+| 認證安全 | JWT · bcrypt 密碼雜湊 |
+| 視覺化 | Recharts |
+
+---
+
+## 授權與聯絡
+
+本系統為 Diamond Wise Company 專屬產品。
+
+**中小企業用戶請聯絡 Diamond Wise 銷售經理領取帳密。**
+
+© 2026 Diamond Wise Company  
+大中華區：中國大陸 · 香港 · 台灣
