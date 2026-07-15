@@ -13,9 +13,13 @@ import {
   ShieldCheck,
   ShieldOff,
   Sparkles,
+  Search,
+  Trash2,
+  ImageIcon,
 } from "lucide-react";
 import { apiProjectPath, projectPagePath } from "@/lib/project-api";
 import ClientAccountPanel from "@/components/dashboard/ClientAccountPanel";
+import DashboardHomeLink from "@/components/dashboard/DashboardHomeLink";
 
 interface Project {
   id: number;
@@ -86,6 +90,12 @@ export default function AdminProjectsPage() {
   const [metricsAvailable, setMetricsAvailable] = useState(false);
   const [keywordFile, setKeywordFile] = useState<File | null>(null);
   const [uploadingKeywords, setUploadingKeywords] = useState(false);
+  const [semFiles, setSemFiles] = useState<FileList | null>(null);
+  const [semTitle, setSemTitle] = useState("");
+  const [uploadingSem, setUploadingSem] = useState(false);
+  const [semScreenshots, setSemScreenshots] = useState<
+    { id: number; title: string; imageUrl: string }[]
+  >([]);
   const [randomSimilarity, setRandomSimilarity] = useState(85);
   const [randomCost, setRandomCost] = useState(0);
   const [randomSourceMonthId, setRandomSourceMonthId] = useState<number | null>(
@@ -342,6 +352,89 @@ export default function AdminProjectsPage() {
     setMessage(data.message || `已匯入 ${data.count} 筆關鍵字`);
   }
 
+  function fetchSemScreenshots(slug: string, monthId: number) {
+    fetch(apiProjectPath(slug, `months/${monthId}/sem-screenshots`))
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.screenshots) {
+          setSemScreenshots(
+            d.screenshots.map(
+              (s: { id: number; title: string; imageUrl: string }) => ({
+                id: s.id,
+                title: s.title,
+                imageUrl: s.imageUrl,
+              })
+            )
+          );
+        } else {
+          setSemScreenshots([]);
+        }
+      })
+      .catch(() => setSemScreenshots([]));
+  }
+
+  async function handleSemUpload() {
+    if (!selectedSlug || !selectedMonthId || !semFiles?.length) return;
+    setUploadingSem(true);
+    setMessage("");
+    let uploaded = 0;
+    let lastError = "";
+
+    for (let i = 0; i < semFiles.length; i++) {
+      const file = semFiles[i];
+      const formData = new FormData();
+      formData.append("file", file);
+      if (semTitle.trim() && semFiles.length === 1) {
+        formData.append("title", semTitle.trim());
+      } else if (semTitle.trim()) {
+        formData.append("title", `${semTitle.trim()} (${i + 1})`);
+      }
+      const res = await fetch(
+        apiProjectPath(selectedSlug, `months/${selectedMonthId}/sem-screenshots`),
+        { method: "POST", body: formData }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        lastError = data.error || "上傳失敗";
+        break;
+      }
+      uploaded += 1;
+    }
+
+    setUploadingSem(false);
+    setSemFiles(null);
+    setSemTitle("");
+    fetchSemScreenshots(selectedSlug, selectedMonthId);
+    if (lastError) {
+      setMessage(
+        uploaded > 0
+          ? `已上傳 ${uploaded} 張，其後失敗：${lastError}`
+          : lastError
+      );
+      return;
+    }
+    setMessage(`已上傳 ${uploaded} 張 SEM Search 截圖`);
+  }
+
+  async function handleSemDelete(id: number) {
+    if (!selectedSlug || !selectedMonthId) return;
+    if (!confirm("確定刪除此 SEM 截圖？")) return;
+    const res = await fetch(
+      apiProjectPath(
+        selectedSlug,
+        `months/${selectedMonthId}/sem-screenshots?id=${id}`
+      ),
+      { method: "DELETE" }
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      setMessage(data.error || "刪除失敗");
+      return;
+    }
+    fetchSemScreenshots(selectedSlug, selectedMonthId);
+    setMessage("截圖已刪除");
+  }
+
   async function handleRandomizeReport() {
     if (!selectedSlug || !selectedMonthId) return;
     setRandomizing(true);
@@ -497,17 +590,19 @@ export default function AdminProjectsPage() {
   useEffect(() => {
     if (!selectedSlug || !selectedMonthId) {
       setMetricsAvailable(false);
+      setSemScreenshots([]);
       return;
     }
     loadMetrics(selectedSlug, selectedMonthId);
+    fetchSemScreenshots(selectedSlug, selectedMonthId);
   }, [selectedSlug, selectedMonthId, months]);
 
   return (
     <div className="dw-page dw-page-wide">
-      <Link href="/dashboard" className="dw-back-link mb-4">
+      <DashboardHomeLink className="dw-back-link mb-4 min-h-10">
         <ArrowLeft size={14} />
         返回首頁
-      </Link>
+      </DashboardHomeLink>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
@@ -962,6 +1057,96 @@ export default function AdminProjectsPage() {
                     {uploadingKeywords ? "匯入中..." : "上傳關鍵字"}
                   </button>
                 </div>
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-[#dadce0]">
+                <div className="flex items-center gap-2 mb-1">
+                  <Search size={14} className="text-[#12377A]" />
+                  <h4 className="text-sm font-semibold text-[#12377A]">
+                    SEM Search 截圖
+                  </h4>
+                </div>
+                <p className="text-xs text-[#858481] mb-3">
+                  上傳本月 Search Engine Result Page 截圖，Views 客人可於「SEM Search」分頁檢視。支援 PNG / JPEG / WebP，單張上限 4 MB，可一次選多張。
+                </p>
+                <input
+                  className="gads-input mb-2 text-sm"
+                  placeholder="標題（選填，多張時會自動編號）"
+                  value={semTitle}
+                  onChange={(e) => setSemTitle(e.target.value)}
+                />
+                <div className="flex items-center gap-3 mb-3">
+                  <label className="flex-1 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => setSemFiles(e.target.files)}
+                    />
+                    <div className="border border-dashed border-[#dadce0] rounded px-3 py-2 text-xs text-[#858481] hover:border-[#12377A]">
+                      {semFiles?.length ? (
+                        <span className="text-[#1e8e3e]">
+                          已選 {semFiles.length} 張圖片
+                        </span>
+                      ) : (
+                        "選擇截圖檔案（可多選）..."
+                      )}
+                    </div>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleSemUpload}
+                    disabled={uploadingSem || !semFiles?.length}
+                    className="gads-btn-outline text-sm disabled:opacity-50 shrink-0 inline-flex items-center gap-1"
+                  >
+                    <ImageIcon size={14} />
+                    {uploadingSem ? "上傳中..." : "上傳截圖"}
+                  </button>
+                </div>
+                {semScreenshots.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {semScreenshots.map((shot) => (
+                      <div
+                        key={shot.id}
+                        className="relative group rounded-lg border border-[#dadce0] overflow-hidden bg-[#f8f9fa]"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={shot.imageUrl}
+                          alt={shot.title}
+                          className="w-full aspect-video object-cover object-top"
+                        />
+                        <div className="px-2 py-1.5 flex items-center justify-between gap-1 border-t border-[#dadce0] bg-white">
+                          <span className="text-[11px] text-[#12377A] truncate">
+                            {shot.title}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleSemDelete(shot.id)}
+                            className="shrink-0 p-1 rounded text-[#d93025] hover:bg-[#fce8e6]"
+                            title="刪除"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#858481]">尚未上傳截圖</p>
+                )}
+                {semScreenshots.length > 0 && (
+                  <Link
+                    href={projectPagePath(
+                      selected.slug,
+                      `${selectedMonth.id}/sem`
+                    )}
+                    className="mt-2 inline-flex text-xs text-[#12377A] hover:underline"
+                  >
+                    預覽客人檢視頁 →
+                  </Link>
+                )}
               </div>
 
               <button

@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Download, RotateCcw, Save } from "lucide-react";
+import { Download, RotateCcw, Save } from "lucide-react";
 import type { KeywordRow } from "@/lib/keyword-parser";
 import { applyKeywordBoosts } from "@/lib/keyword-adjust";
 import type { KeywordAdminItem } from "@/lib/project-keywords";
 import { downloadKeywordsExcel } from "@/lib/keyword-export";
-import { apiProjectPath, fetchProjectJson, projectPagePath, normalizeProjectSlug } from "@/lib/project-api";
+import MonthReportNav from "@/components/dashboard/MonthReportNav";
+import { apiProjectPath, fetchProjectJson, normalizeProjectSlug } from "@/lib/project-api";
 
 function formatCurrency(n: number): string {
   return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
@@ -170,15 +170,15 @@ export default function ProjectKeywordsPage() {
   }
 
   return (
-    <div className="min-h-full bg-[#f1f3f4] p-4 sm:p-6">
-      <div className="max-w-[1500px] mx-auto">
-        <Link
-          href={projectPagePath(slug, `${monthId}/ads`)}
-          className="dw-back-link mb-4 min-h-10"
-        >
-          <ArrowLeft size={14} />
-          返回儀表板
-        </Link>
+    <div className="min-h-full bg-[#f1f3f4]">
+      <div className="dw-page dw-page-wide max-w-[1500px]">
+        <MonthReportNav
+          slug={slug}
+          monthId={monthId}
+          active="keywords"
+          projectName={projectName}
+          reportMonth={reportMonth}
+        />
 
         <div className="bg-white border border-[#dadce0] rounded-xl shadow-sm overflow-hidden">
           <div className="px-4 sm:px-6 py-4 border-b border-[#dadce0] flex flex-col sm:flex-row sm:flex-wrap items-start justify-between gap-4">

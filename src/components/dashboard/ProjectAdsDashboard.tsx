@@ -13,6 +13,7 @@ import type {
 import Link from "next/link";
 import MonthlyTrendChart from "@/components/dashboard/MonthlyTrendChart";
 import ChartContainer from "@/components/dashboard/ChartContainer";
+import MonthReportNav from "@/components/dashboard/MonthReportNav";
 import {
   BarChart,
   Bar,
@@ -21,7 +22,6 @@ import {
   Tooltip,
 } from "recharts";
 import {
-  ArrowLeft,
   Download,
   Lightbulb,
   Smartphone,
@@ -60,6 +60,7 @@ export default function ProjectAdsDashboard({
   projectSlug,
   monthId,
   projectName,
+  reportMonth,
   keywords = [],
   demographics = [],
   devices = [],
@@ -71,6 +72,7 @@ export default function ProjectAdsDashboard({
   projectSlug: string;
   monthId: string;
   projectName: string;
+  reportMonth?: string;
   keywords?: KeywordRow[];
   demographics?: DemographicRow[];
   devices?: DeviceRow[];
@@ -185,20 +187,16 @@ export default function ProjectAdsDashboard({
   return (
     <div className="min-h-full bg-[#f1f3f4]">
       <div className="bg-[#f8f9fa] border-b border-[#dadce0]">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 pt-3 pb-2">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 pt-4 pb-3">
+          <MonthReportNav
+            slug={projectSlug}
+            monthId={String(monthId)}
+            active="ads"
+            projectName={projectName}
+            reportMonth={reportMonth || report.project.dateRange}
+          />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
-                <Link
-                  href={projectPagePath(projectSlug, String(monthId))}
-                  className="inline-flex items-center gap-1 text-sm text-[#5f6368] hover:text-[#1a73e8] min-h-10"
-                >
-                  <ArrowLeft size={14} />
-                  返回報告
-                </Link>
-                <span className="text-[#dadce0] hidden sm:inline">|</span>
-                <span className="text-sm text-[#202124] font-medium">首頁</span>
-              </div>
               <h1 className="text-lg sm:text-xl font-medium text-[#202124] break-words">
                 {projectName} Google Ads Dashboard
               </h1>

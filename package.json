@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:seed": "tsx src/lib/seed.ts",
-    "db:migrate": "echo 'Run supabase/migrations/001_initial_schema.sql in your Supabase SQL editor'",
+    "db:migrate": "echo 'Run supabase/migrations/*.sql in your Supabase SQL editor (latest: 003_sem_screenshots.sql)'",
     "postinstall": "node scripts/postinstall.mjs"
   },
   "dependencies": {

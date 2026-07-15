@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import ReportViewer from "@/components/report/ReportViewer";
+import MonthReportNav from "@/components/dashboard/MonthReportNav";
 import type { ReportData } from "@/lib/report-engine";
-import { apiProjectPath, fetchProjectJson, projectPagePath, normalizeProjectSlug } from "@/lib/project-api";
-import { ArrowLeft, LayoutDashboard } from "lucide-react";
+import {
+  apiProjectPath,
+  fetchProjectJson,
+  normalizeProjectSlug,
+} from "@/lib/project-api";
 
 export default function ProjectReportPage() {
   const params = useParams();
@@ -53,43 +56,31 @@ export default function ProjectReportPage() {
 
   if (error || !report) {
     return (
-      <div className="p-8 text-center">
+      <div className="dw-page">
+        <MonthReportNav slug={slug} monthId={monthId} active="report" />
         <p className="text-[#d93025]">{error || "報告不存在"}</p>
-        <Link
-          href={projectPagePath(slug)}
-          className="text-[#12377A] text-sm mt-2 inline-block hover:underline"
-        >
-          返回月份選擇
-        </Link>
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 bg-[#F2F9FC] min-h-full">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-        <Link
-          href={projectPagePath(slug)}
-          className="inline-flex items-center gap-1 text-sm text-[#858481] hover:text-[#12377A] min-h-10"
-        >
-          <ArrowLeft size={14} />
-          返回月份選擇
-        </Link>
-        <Link
-          href={projectPagePath(slug, `${monthId}/ads`)}
-          className="inline-flex items-center justify-center gap-2 bg-[#1a73e8] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-[#1557b0] min-h-11"
-        >
-          <LayoutDashboard size={16} />
-          查看數據儀表板
-        </Link>
+    <div className="min-h-full bg-[#F2F9FC]">
+      <div className="dw-page dw-page-wide">
+        <MonthReportNav
+          slug={slug}
+          monthId={monthId}
+          active="report"
+          projectName={projectName}
+          reportMonth={reportMonth}
+        />
+        <ReportViewer
+          report={report}
+          projectName={projectName}
+          projectSlug={slug}
+          monthId={monthId}
+          reportMonth={reportMonth}
+        />
       </div>
-      <ReportViewer
-        report={report}
-        projectName={projectName}
-        projectSlug={slug}
-        monthId={monthId}
-        reportMonth={reportMonth}
-      />
     </div>
   );
 }

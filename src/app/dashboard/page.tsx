@@ -88,8 +88,8 @@ export default function DashboardPage() {
             </h1>
             <p className="text-sm text-[#858481] mt-1 max-w-xl">
               {isViewer
-                ? "檢視已發佈的 Google Ads 月度成效報告與關鍵字分析"
-                : "管理客戶專案、月度報告發佈與帳戶資料"}
+                ? "檢視已發佈的月度成效報告、SEM Search 截圖與關鍵字分析"
+                : "管理客戶專案、月度報告發佈、SEM 截圖與帳戶資料"}
             </p>
           </div>
           {isAdmin && (

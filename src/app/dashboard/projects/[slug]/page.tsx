@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, CheckCircle, Clock, Lock, FileText } from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle, Clock, Lock, FileText, Search } from "lucide-react";
 import { apiProjectPath, fetchProjectJson, projectPagePath, normalizeProjectSlug } from "@/lib/project-api";
 import ClientAccountPanel from "@/components/dashboard/ClientAccountPanel";
+import DashboardHomeLink from "@/components/dashboard/DashboardHomeLink";
 
 interface ProjectMonth {
   id: number;
@@ -66,19 +67,19 @@ export default function ProjectMonthPickerPage() {
     return (
       <div className="dw-page text-center">
         <p className="text-[#d93025]">{error || "專案不存在"}</p>
-        <Link href="/dashboard" className="text-[#12377A] text-sm mt-2 inline-block hover:underline">
+        <DashboardHomeLink className="text-[#12377A] text-sm mt-2 inline-block hover:underline">
           返回首頁
-        </Link>
+        </DashboardHomeLink>
       </div>
     );
   }
 
   return (
     <div className="dw-page">
-      <Link href="/dashboard" className="dw-back-link mb-4">
+      <DashboardHomeLink className="dw-back-link mb-4 min-h-10">
         <ArrowLeft size={14} />
         返回專案列表
-      </Link>
+      </DashboardHomeLink>
 
       <header className="mb-5">
         <p className="dw-section-label mb-1">專案報告</p>
@@ -170,13 +171,22 @@ export default function ProjectMonthPickerPage() {
                   </div>
 
                   {canOpen ? (
-                    <Link
-                      href={projectPagePath(slug, String(month.id))}
-                      className="inline-flex items-center justify-center gap-1.5 bg-[#12377A] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#0d2a5e] shrink-0 min-h-10"
-                    >
-                      <FileText size={14} />
-                      查看報告
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <Link
+                        href={projectPagePath(slug, String(month.id))}
+                        className="inline-flex items-center justify-center gap-1.5 bg-[#12377A] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#0d2a5e] min-h-10"
+                      >
+                        <FileText size={14} />
+                        查看報告
+                      </Link>
+                      <Link
+                        href={projectPagePath(slug, `${month.id}/sem`)}
+                        className="inline-flex items-center justify-center gap-1.5 border border-[#12377A] text-[#12377A] px-3.5 py-2 rounded-lg text-sm hover:bg-[#e8f0fe] min-h-10"
+                      >
+                        <Search size={14} />
+                        SEM
+                      </Link>
+                    </div>
                   ) : (
                     <span className="text-xs text-[#858481] shrink-0">資料未完成</span>
                   )}

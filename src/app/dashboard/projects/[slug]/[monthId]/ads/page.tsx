@@ -26,6 +26,7 @@ export default function ProjectAdsDashboardPage() {
   const [demographics, setDemographics] = useState<DemographicRow[]>([]);
   const [devices, setDevices] = useState<DeviceRow[]>([]);
   const [projectName, setProjectName] = useState("");
+  const [reportMonth, setReportMonth] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [weekdayChart, setWeekdayChart] = useState<WeekdayChartPoint[]>([]);
   const [dailyTrend, setDailyTrend] = useState<{
@@ -45,6 +46,7 @@ export default function ProjectAdsDashboardPage() {
       demographics?: DemographicRow[];
       devices?: DeviceRow[];
       project: { name: string };
+      month?: { report_month?: string };
       weekdayChart?: WeekdayChartPoint[];
       dailyTrend?: {
         points: DailyTrendPoint[];
@@ -59,6 +61,7 @@ export default function ProjectAdsDashboardPage() {
         setDemographics(data.demographics || []);
         setDevices(data.devices || []);
         setProjectName(data.project.name);
+        setReportMonth(data.month?.report_month || "");
         setIsAdmin(Boolean(data.isAdmin));
         setWeekdayChart(data.weekdayChart || []);
         setDailyTrend(data.dailyTrend || null);
@@ -91,6 +94,7 @@ export default function ProjectAdsDashboardPage() {
       projectSlug={slug}
       monthId={monthId}
       projectName={projectName}
+      reportMonth={reportMonth}
       keywords={keywords}
       demographics={demographics}
       devices={devices}

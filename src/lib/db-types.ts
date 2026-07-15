@@ -72,3 +72,14 @@ export interface KeywordRowDb {
   boost_pct: number;
   sort_order: number;
 }
+
+export interface SemScreenshotRow {
+  id: number;
+  project_month_id: number;
+  title: string;
+  image_data: string;
+  mime_type: string;
+  sort_order: number;
+  uploaded_by: number | null;
+  uploaded_at: string;
+}

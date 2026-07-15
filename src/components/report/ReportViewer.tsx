@@ -495,8 +495,9 @@ export default function ReportViewer({
           {PAGE_MAP.map((item, index) => (
             <button
               key={item.page}
+              type="button"
               onClick={() => setCurrent(index)}
-              className={`rounded border px-3 py-2.5 text-left transition-colors min-h-11 ${
+              className={`rounded border px-3 py-2.5 text-left transition-colors min-h-11 cursor-pointer ${
                 current === index
                   ? "border-[#12377A] bg-[#e8f0fe] text-[#12377A]"
                   : "border-[#dadce0] bg-[#F2F9FC] text-[#858481] hover:border-[#3D8BC1]"
@@ -517,30 +518,35 @@ export default function ReportViewer({
           </h1>
           <p className="text-sm text-[#858481]">{report.project.dateRange}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="relative z-10 flex flex-wrap items-center gap-2">
           <button
+            type="button"
             onClick={() => setCurrent(Math.max(0, current - 1))}
             disabled={current === 0}
-            className="inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-full hover:bg-white disabled:opacity-30 border border-[#dadce0]"
+            className="inline-flex items-center justify-center gap-1 min-h-11 px-3 rounded-lg hover:bg-white disabled:opacity-40 disabled:pointer-events-none border border-[#dadce0] bg-[#F2F9FC] text-sm text-[#12377A] cursor-pointer"
             aria-label="上一頁"
           >
             <ChevronLeft size={18} />
+            <span className="hidden sm:inline">上一頁</span>
           </button>
-          <span className="text-sm text-[#858481] w-16 text-center">
+          <span className="text-sm text-[#858481] min-w-[3.5rem] text-center tabular-nums">
             {current + 1} / 9
           </span>
           <button
+            type="button"
             onClick={() => setCurrent(Math.min(8, current + 1))}
             disabled={current === 8}
-            className="inline-flex items-center justify-center min-h-11 min-w-11 p-2 rounded-full hover:bg-white disabled:opacity-30 border border-[#dadce0]"
+            className="inline-flex items-center justify-center gap-1 min-h-11 px-3 rounded-lg hover:bg-white disabled:opacity-40 disabled:pointer-events-none border border-[#dadce0] bg-[#F2F9FC] text-sm text-[#12377A] cursor-pointer"
             aria-label="下一頁"
           >
+            <span className="hidden sm:inline">下一頁</span>
             <ChevronRight size={18} />
           </button>
           <button
+            type="button"
             onClick={handleExportPdf}
             disabled={exporting}
-            className="flex items-center justify-center gap-1 text-sm text-[#12377A] border border-[#12377A] px-3 py-2 rounded hover:bg-[#e8f0fe] disabled:opacity-50 min-h-11"
+            className="flex items-center justify-center gap-1 text-sm text-[#12377A] border border-[#12377A] px-3 py-2 rounded hover:bg-[#e8f0fe] disabled:opacity-50 min-h-11 cursor-pointer"
           >
             <Download size={14} />
             {exporting ? "匯出中..." : "匯出 PDF"}
@@ -550,17 +556,38 @@ export default function ReportViewer({
 
       {pages[current]}
 
-      <div className="flex justify-center gap-2 mt-4 pb-2">
-        {pages.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`w-3 h-3 rounded-full transition-colors ${
-              i === current ? "bg-[#12377A]" : "bg-[#A8D5E5]"
-            }`}
-            aria-label={`第 ${i + 1} 頁`}
-          />
-        ))}
+      <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3 mt-5 pb-2">
+        <button
+          type="button"
+          onClick={() => setCurrent(Math.max(0, current - 1))}
+          disabled={current === 0}
+          className="inline-flex items-center justify-center gap-1.5 min-h-11 px-4 rounded-lg border border-[#dadce0] bg-white text-sm text-[#12377A] hover:bg-[#e8f0fe] disabled:opacity-40 disabled:pointer-events-none cursor-pointer w-full sm:w-auto"
+        >
+          <ChevronLeft size={16} />
+          上一頁
+        </button>
+        <div className="flex justify-center gap-2">
+          {pages.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setCurrent(i)}
+              className={`w-3 h-3 rounded-full transition-colors cursor-pointer ${
+                i === current ? "bg-[#12377A]" : "bg-[#A8D5E5] hover:bg-[#6BAFD3]"
+              }`}
+              aria-label={`第 ${i + 1} 頁`}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => setCurrent(Math.min(8, current + 1))}
+          disabled={current === 8}
+          className="inline-flex items-center justify-center gap-1.5 min-h-11 px-4 rounded-lg border border-[#dadce0] bg-white text-sm text-[#12377A] hover:bg-[#e8f0fe] disabled:opacity-40 disabled:pointer-events-none cursor-pointer w-full sm:w-auto"
+        >
+          下一頁
+          <ChevronRight size={16} />
+        </button>
       </div>
     </div>
   );

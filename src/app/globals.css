@@ -253,29 +253,29 @@ body {
 
 /* DW VIEWS app shell */
 .dw-page {
-  padding: 1rem 1rem 2rem;
+  padding: 1.25rem 1.25rem 2.5rem;
   max-width: 56rem;
   margin: 0 auto;
 }
 @media (min-width: 640px) {
   .dw-page {
-    padding: 1.5rem 1.5rem 2.5rem;
+    padding: 1.75rem 1.75rem 3rem;
   }
 }
 @media (min-width: 1024px) {
   .dw-page {
-    padding: 2rem 2rem 3rem;
+    padding: 2rem 2rem 3.5rem;
   }
 }
 
 .dw-page-wide {
-  max-width: 72rem;
+  max-width: 75rem;
 }
 
 .dw-card {
   background: white;
   border: 1px solid var(--gads-border);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .dw-section-label {
@@ -337,6 +337,9 @@ body {
   font-size: 13px;
   color: var(--gads-text-secondary);
   transition: color 0.15s;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
 }
 .dw-back-link:hover {
   color: #12377a;
