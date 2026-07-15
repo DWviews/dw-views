@@ -152,6 +152,28 @@ export function nextReportMonthLabel(current: string): string {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
+/** Calendar month immediately before the given report month label (e.g. July 2026 → June 2026). */
+export function previousReportMonthLabel(current: string): string | null {
+  const date = parseReportMonthLabel(current);
+  if (!date) return null;
+  date.setMonth(date.getMonth() - 1);
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+export function sameReportMonth(
+  a: string | null | undefined,
+  b: string | null | undefined
+): boolean {
+  if (!a || !b) return false;
+  if (a.trim() === b.trim()) return true;
+  const da = parseReportMonthLabel(a);
+  const db = parseReportMonthLabel(b);
+  if (!da || !db) return false;
+  return (
+    da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth()
+  );
+}
+
 export function nextDateRangeLabel(current: string | null | undefined): string {
   const date = current ? parseReportMonthLabel(current) : null;
   const base = date || new Date();

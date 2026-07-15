@@ -32,9 +32,19 @@ import {
   MoreVertical,
   ChevronDown,
   Monitor,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 
 const AGE_GROUPS = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
+
+export interface PreviousMonthComparison {
+  reportMonth: string;
+  clicks: number;
+  conversions: number;
+  cost: number;
+  costPerConversion: number;
+}
 
 function parseMetricNumber(value: string): number {
   if (!value) return 0;
@@ -55,6 +65,62 @@ function deviceLabel(name: string): string {
   return name;
 }
 
+/** null = previous value unavailable / zero → hide comparison */
+function momChangePct(current: number, previous: number): number | null {
+  if (!Number.isFinite(previous) || previous <= 0) return null;
+  if (!Number.isFinite(current)) return null;
+  return ((current - previous) / previous) * 100;
+}
+
+function MomBadge({
+  changePct,
+  invertColors = false,
+  onDark = false,
+}: {
+  changePct: number | null;
+  /** When true, increase is bad (e.g. cost per conversion) */
+  invertColors?: boolean;
+  onDark?: boolean;
+}) {
+  if (changePct === null) return null;
+
+  const rounded = Math.round(changePct * 10) / 10;
+  const isUp = rounded > 0;
+  const isFlat = rounded === 0;
+  const favorable = isFlat ? null : invertColors ? !isUp : isUp;
+
+  const tone = isFlat
+    ? onDark
+      ? "text-white/75"
+      : "text-[#5f6368]"
+    : favorable
+      ? onDark
+        ? "text-[#ceead6]"
+        : "text-[#137333]"
+      : onDark
+        ? "text-[#fad2cf]"
+        : "text-[#c5221f]";
+
+  const Icon = isFlat ? null : isUp ? TrendingUp : TrendingDown;
+  const sign = isUp ? "+" : "";
+
+  return (
+    <div
+      className={`mt-1.5 inline-flex items-center gap-1 text-[11px] sm:text-xs font-medium ${tone}`}
+      title="較上月變化"
+    >
+      {Icon ? <Icon size={12} className="shrink-0" /> : null}
+      <span className="tabular-nums">
+        {sign}
+        {rounded.toFixed(1)}%
+      </span>
+      <span className={onDark ? "text-white/65 font-normal" : "text-[#858481] font-normal"}>
+        同比上月
+      </span>
+    </div>
+  );
+}
+
 export default function ProjectAdsDashboard({
   report,
   projectSlug,
@@ -67,6 +133,7 @@ export default function ProjectAdsDashboard({
   isAdmin = false,
   weekdayChart,
   dailyTrend,
+  previousMonth = null,
 }: {
   report: ReportData;
   projectSlug: string;
@@ -83,6 +150,7 @@ export default function ProjectAdsDashboard({
     promo: DailyTrendPromoConfig;
     daysInMonth: number;
   } | null;
+  previousMonth?: PreviousMonthComparison | null;
 }) {
   const totalClicks = report.page2.metrics[0]?.value ?? "-";
   const totalImpressions = report.page2.metrics[1]?.value ?? "-";
@@ -95,6 +163,8 @@ export default function ProjectAdsDashboard({
   const numericCost = parseMetricNumber(String(totalCost));
   const numericCtr = parsePercentMetric(String(report.page2.metrics[3]?.value ?? "0"));
   const numericConvRate = parsePercentMetric(String(report.page2.metrics[2]?.value ?? "0"));
+  const numericCpa =
+    numericConversions > 0 ? numericCost / numericConversions : 0;
 
   const dayChartData = (weekdayChart && weekdayChart.length > 0
     ? weekdayChart
@@ -182,7 +252,22 @@ export default function ProjectAdsDashboard({
   const widgetClass =
     "bg-white border border-[#dadce0] rounded-xl shadow-[0_1px_2px_rgba(60,64,67,0.08)]";
 
-  const costPerConversion = `$${Math.round(numericCost / Math.max(numericConversions, 1))}`;
+  const costPerConversion = `$${Math.round(
+    numericConversions > 0 ? numericCpa : numericCost
+  )}`;
+
+  const clicksMom = previousMonth
+    ? momChangePct(numericClicks, previousMonth.clicks)
+    : null;
+  const conversionsMom = previousMonth
+    ? momChangePct(numericConversions, previousMonth.conversions)
+    : null;
+  const cpaMom =
+    previousMonth &&
+    numericConversions > 0 &&
+    previousMonth.conversions > 0
+      ? momChangePct(numericCpa, previousMonth.costPerConversion)
+      : null;
 
   return (
     <div className="min-h-full bg-[#f1f3f4]">
@@ -231,6 +316,7 @@ export default function ProjectAdsDashboard({
               <div className="text-2xl sm:text-4xl font-normal tabular-nums">
                 {totalClicks}
               </div>
+              <MomBadge changePct={clicksMom} onDark />
             </div>
             <div className="bg-[#db4437] text-white px-4 sm:px-5 py-3 sm:py-4">
               <div className="text-xs mb-1 flex items-center gap-1">
@@ -239,12 +325,14 @@ export default function ProjectAdsDashboard({
               <div className="text-2xl sm:text-4xl font-normal tabular-nums">
                 {totalConversions}
               </div>
+              <MomBadge changePct={conversionsMom} onDark />
             </div>
             <div className="bg-white px-4 sm:px-5 py-3 sm:py-4 border-t lg:border-t-0 lg:border-l border-[#dadce0]">
               <div className="text-xs text-[#5f6368] mb-1">單次轉換費用</div>
               <div className="text-2xl sm:text-4xl font-normal text-[#202124] tabular-nums">
                 {costPerConversion}
               </div>
+              <MomBadge changePct={cpaMom} invertColors />
             </div>
             <div className="bg-white px-4 sm:px-5 py-3 sm:py-4 border-t lg:border-t-0 border-l border-[#dadce0] flex justify-between gap-2">
               <div className="min-w-0">

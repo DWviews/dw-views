@@ -17,6 +17,14 @@ import type {
   WeekdayChartPoint,
 } from "@/lib/daily-trend-shared";
 
+interface PreviousMonthComparison {
+  reportMonth: string;
+  clicks: number;
+  conversions: number;
+  cost: number;
+  costPerConversion: number;
+}
+
 export default function ProjectAdsDashboardPage() {
   const params = useParams();
   const slug = normalizeProjectSlug(params.slug as string);
@@ -29,6 +37,8 @@ export default function ProjectAdsDashboardPage() {
   const [reportMonth, setReportMonth] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [weekdayChart, setWeekdayChart] = useState<WeekdayChartPoint[]>([]);
+  const [previousMonth, setPreviousMonth] =
+    useState<PreviousMonthComparison | null>(null);
   const [dailyTrend, setDailyTrend] = useState<{
     points: DailyTrendPoint[];
     promo: DailyTrendPromoConfig;
@@ -48,6 +58,7 @@ export default function ProjectAdsDashboardPage() {
       project: { name: string };
       month?: { report_month?: string };
       weekdayChart?: WeekdayChartPoint[];
+      previousMonth?: PreviousMonthComparison | null;
       dailyTrend?: {
         points: DailyTrendPoint[];
         promo: DailyTrendPromoConfig;
@@ -64,6 +75,7 @@ export default function ProjectAdsDashboardPage() {
         setReportMonth(data.month?.report_month || "");
         setIsAdmin(Boolean(data.isAdmin));
         setWeekdayChart(data.weekdayChart || []);
+        setPreviousMonth(data.previousMonth ?? null);
         setDailyTrend(data.dailyTrend || null);
       })
       .catch((err) =>
@@ -101,6 +113,7 @@ export default function ProjectAdsDashboardPage() {
       isAdmin={isAdmin}
       weekdayChart={weekdayChart}
       dailyTrend={dailyTrend}
+      previousMonth={previousMonth}
     />
   );
 }

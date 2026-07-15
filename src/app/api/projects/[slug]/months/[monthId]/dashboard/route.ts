@@ -37,6 +37,7 @@ export async function GET(
       devices: data.devices,
       weekdayChart: data.weekdayChart,
       dailyTrend: data.dailyTrend,
+      previousMonth: data.previousMonth,
       isAdmin: session.role === "admin",
     });
   } catch (err) {

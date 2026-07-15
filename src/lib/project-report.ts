@@ -8,6 +8,7 @@ import {
   canViewMonth,
   parseMetricOverrides,
   getProjectMonthForProject,
+  getMetricOverrides,
   type ProjectMonthRecord,
 } from "./project-months";
 import { resolveProjectSlugCandidates } from "./project-slug";
@@ -19,6 +20,12 @@ import {
   type DailyTrendRecord,
   type WeekdayChartPoint,
 } from "./daily-trend";
+import {
+  metricsFromCampaign,
+  previousReportMonthLabel,
+  sameReportMonth,
+  type MonthMetricsInput,
+} from "./month-generator";
 
 export interface ProjectRecord {
   id: number;
@@ -36,6 +43,14 @@ export interface DashboardExtras {
   devices: DeviceRow[];
 }
 
+export interface MonthOverMonthComparison {
+  reportMonth: string;
+  clicks: number;
+  conversions: number;
+  cost: number;
+  costPerConversion: number;
+}
+
 export interface ProjectMonthDashboardBundle {
   project: ProjectRecord;
   month: ProjectMonthRecord;
@@ -46,6 +61,7 @@ export interface ProjectMonthDashboardBundle {
   weekdayChart: WeekdayChartPoint[];
   dailyTrend: DailyTrendRecord & { daysInMonth: number };
   csvFiles: string[];
+  previousMonth: MonthOverMonthComparison | null;
 }
 
 /** 同一 request 內重複查詢時共用結果 */
@@ -170,6 +186,76 @@ export async function getProjectMonthReport(
   };
 }
 
+async function resolveMonthMetrics(
+  monthId: number
+): Promise<MonthMetricsInput | null> {
+  const overrides = await getMetricOverrides(monthId);
+  if (overrides) return overrides;
+
+  const files = await loadMonthCsvFiles(monthId);
+  const parsed = parseAllCSVs(files);
+  if (parsed.campaign) {
+    return metricsFromCampaign(parsed.campaign);
+  }
+  return null;
+}
+
+async function getPreviousMonthComparison(
+  projectId: number,
+  currentMonth: ProjectMonthRecord,
+  user: SessionUser
+): Promise<MonthOverMonthComparison | null> {
+  const prevLabel = previousReportMonthLabel(currentMonth.report_month);
+  if (!prevLabel) return null;
+
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("project_months")
+    .select("*")
+    .eq("project_id", projectId);
+
+  if (error) throw error;
+
+  const prevRow = (data ?? []).find((row) =>
+    sameReportMonth(row.report_month as string, prevLabel)
+  );
+  if (!prevRow) return null;
+
+  const prevMonth: ProjectMonthRecord = {
+    id: prevRow.id as number,
+    project_id: prevRow.project_id as number,
+    report_month: prevRow.report_month as string,
+    report_date_range: prevRow.report_date_range as string | null,
+    status: prevRow.status as string,
+    views_approved: prevRow.views_approved as boolean,
+    approved_by: (prevRow.approved_by as number | null) ?? null,
+    approved_at: (prevRow.approved_at as string | null) ?? null,
+    metric_overrides: prevRow.metric_overrides,
+    created_at: prevRow.created_at as string,
+    updated_at: prevRow.updated_at as string,
+  };
+
+  if (!canViewMonth(user, prevMonth)) return null;
+
+  const metrics = await resolveMonthMetrics(prevMonth.id);
+  if (!metrics) return null;
+
+  const hasData =
+    metrics.clicks > 0 || metrics.conversions > 0 || metrics.cost > 0;
+  if (!hasData) return null;
+
+  const costPerConversion =
+    metrics.conversions > 0 ? metrics.cost / metrics.conversions : 0;
+
+  return {
+    reportMonth: prevMonth.report_month,
+    clicks: metrics.clicks,
+    conversions: metrics.conversions,
+    cost: metrics.cost,
+    costPerConversion,
+  };
+}
+
 /**
  * 儀表板一次載完：CSV 只解析一次，關鍵字／星期圖／日趨勢並行讀取。
  */
@@ -207,10 +293,11 @@ export async function getProjectMonthDashboardBundle(
     };
   }
 
-  const [files, keywords, weekdaySaved] = await Promise.all([
+  const [files, keywords, weekdaySaved, previousMonth] = await Promise.all([
     loadMonthCsvFiles(month.id),
     getKeywordRows(month.id),
     getWeekdayChartOverrides(month.id),
+    getPreviousMonthComparison(project.id, month, user),
   ]);
 
   const csvFiles = Object.keys(files);
@@ -294,6 +381,7 @@ export async function getProjectMonthDashboardBundle(
       weekdayChart,
       dailyTrend: { ...dailyTrend, daysInMonth },
       csvFiles,
+      previousMonth,
     },
   };
 }
