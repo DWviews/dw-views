@@ -58,6 +58,7 @@ export default function ClientAccountPanel({
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoLibrary, setLogoLibrary] = useState<ClientLogoListItem[]>([]);
+  const [logoLibraryLoading, setLogoLibraryLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -80,16 +81,23 @@ export default function ClientAccountPanel({
   }, [slug]);
 
   async function loadLogoLibrary() {
-    const res = await fetch("/api/client-logos");
-    if (!res.ok) return;
-    const data = await res.json();
-    setLogoLibrary(data.logos || []);
+    setLogoLibraryLoading(true);
+    try {
+      const res = await fetch("/api/client-logos");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "無法載入標誌素材庫");
+      setLogoLibrary(data.logos || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "無法載入標誌素材庫");
+    } finally {
+      setLogoLibraryLoading(false);
+    }
   }
 
   useEffect(() => {
     if (!canEdit) return;
     loadLogoLibrary();
-  }, [canEdit]);
+  }, [canEdit, slug]);
 
   async function handleSave() {
     setSaving(true);
@@ -266,6 +274,7 @@ export default function ClientAccountPanel({
           onLogoRemove={handleLogoRemove}
           onSelectExistingLogo={handleSelectExistingLogo}
           logoLibrary={logoLibrary}
+          logoLibraryLoading={logoLibraryLoading}
           uploadingLogo={uploadingLogo}
         />
       ) : hasClientAccountData(account) ? (
@@ -324,6 +333,7 @@ function AdminForm({
   onLogoRemove,
   onSelectExistingLogo,
   logoLibrary,
+  logoLibraryLoading,
   uploadingLogo,
 }: {
   form: ClientAccount;
@@ -334,6 +344,7 @@ function AdminForm({
   onLogoRemove: () => void;
   onSelectExistingLogo: (logoId: number) => void;
   logoLibrary: ClientLogoListItem[];
+  logoLibraryLoading: boolean;
   uploadingLogo: boolean;
 }) {
   return (
@@ -459,7 +470,7 @@ function AdminForm({
           <div>
             <div className="text-xs font-medium text-[#12377A]">品牌標誌</div>
             <div className="text-[10px] text-[#858481]">
-              可上傳新檔或選用素材庫既有標誌 · PNG / JPEG / WebP / SVG，最大 512 KB
+              上傳後會加入共用素材庫，其他合約可直接選用 · PNG / JPEG / WebP / SVG，最大 512 KB
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -493,11 +504,17 @@ function AdminForm({
           </div>
         </div>
 
-        {logoLibrary.length > 0 && (
-          <div>
-            <div className="text-[10px] font-medium text-[#858481] mb-2">
-              選用既有標誌（共用素材，節省儲存與流量）
+        <div>
+          <div className="text-[10px] font-medium text-[#858481] mb-2">
+            選用既有標誌（所有合約共用）
+          </div>
+          {logoLibraryLoading ? (
+            <div className="text-[10px] text-[#858481]">載入素材庫中...</div>
+          ) : logoLibrary.length === 0 ? (
+            <div className="text-[10px] text-[#858481] rounded border border-dashed border-[#dadce0] px-3 py-2 bg-white">
+              尚無共用標誌。於任一合約上傳後，其他合約即可在此選用。
             </div>
+          ) : (
             <div className="flex flex-wrap gap-2">
               {logoLibrary.map((logo) => {
                 const selected = form.logoUrl === logo.url;
@@ -527,8 +544,8 @@ function AdminForm({
                 );
               })}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <button

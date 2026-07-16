@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { getSupabaseAdmin } from "./supabase";
 import { logoPublicUrl, type ClientLogoListItem } from "./client-logo-url";
@@ -28,7 +28,8 @@ export interface ClientLogoRecord {
   mime_type: string;
   storage_path: string;
   file_size: number;
-  storage_backend: "local" | "supabase";
+  storage_backend: "local" | "supabase" | "database";
+  content_base64?: string | null;
   created_at: string;
 }
 
@@ -36,7 +37,6 @@ function extensionForMime(mimeType: string): string {
   return EXT_BY_MIME[mimeType] ?? "bin";
 }
 
-/** Vercel/serverless has no writable project data directory. */
 function requiresRemoteStorage(): boolean {
   return Boolean(process.env.VERCEL);
 }
@@ -49,32 +49,16 @@ function localLogoFilePath(storagePath: string): string {
   return path.join(localLogoDir(), storagePath);
 }
 
-async function saveToLocal(storagePath: string, buffer: Buffer): Promise<void> {
-  const dir = localLogoDir();
-  await mkdir(dir, { recursive: true });
-  await writeFile(localLogoFilePath(storagePath), buffer);
+function parseDataUrl(dataUrl: string): { mimeType: string; buffer: Buffer } | null {
+  const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+  if (!match) return null;
+  return {
+    mimeType: match[1],
+    buffer: Buffer.from(match[2], "base64"),
+  };
 }
 
-async function saveToSupabase(
-  storagePath: string,
-  buffer: Buffer,
-  mimeType: string
-): Promise<void> {
-  const supabase = getSupabaseAdmin();
-  const { error } = await supabase.storage
-    .from(LOGO_BUCKET)
-    .upload(storagePath, buffer, {
-      contentType: mimeType,
-      upsert: true,
-    });
-  if (error) {
-    throw new Error(
-      `Supabase Storage 上傳失敗：${error.message}。請在 Supabase 建立公開 bucket「${LOGO_BUCKET}」`
-    );
-  }
-}
-
-async function readFromSupabase(storagePath: string): Promise<Buffer | null> {
+async function readFromSupabaseStorage(storagePath: string): Promise<Buffer | null> {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase.storage
     .from(LOGO_BUCKET)
@@ -89,6 +73,21 @@ async function readFromLocal(storagePath: string): Promise<Buffer | null> {
   } catch {
     return null;
   }
+}
+
+async function saveLogoContent(
+  logoId: number,
+  buffer: Buffer,
+  mimeType: string
+): Promise<Pick<ClientLogoRecord, "storage_path" | "storage_backend" | "content_base64">> {
+  const storagePath = `${logoId}.${extensionForMime(mimeType)}`;
+
+  // Primary: store in database so every contract can reuse without Storage bucket.
+  return {
+    storage_path: storagePath,
+    storage_backend: "database",
+    content_base64: buffer.toString("base64"),
+  };
 }
 
 export async function uploadClientLogo(
@@ -112,43 +111,63 @@ export async function uploadClientLogo(
       mime_type: mimeType,
       storage_path: placeholderPath,
       file_size: buffer.byteLength,
-      storage_backend: "local",
+      storage_backend: "database",
     })
     .select("*")
     .single();
 
   if (insertError || !row) throw insertError ?? new Error("建立標誌記錄失敗");
 
-  const storagePath = `${row.id}.${extensionForMime(mimeType)}`;
-  let storageBackend: ClientLogoRecord["storage_backend"];
-
-  try {
-    await saveToSupabase(storagePath, buffer, mimeType);
-    storageBackend = "supabase";
-  } catch (error) {
-    if (requiresRemoteStorage()) {
-      await supabase.from("client_logos").delete().eq("id", row.id);
-      throw error;
-    }
-    await saveToLocal(storagePath, buffer);
-    storageBackend = "local";
-  }
+  const contentMeta = await saveLogoContent(row.id as number, buffer, mimeType);
 
   const { data: updated, error: updateError } = await supabase
     .from("client_logos")
-    .update({
-      storage_path: storagePath,
-      storage_backend: storageBackend,
-    })
+    .update(contentMeta)
     .eq("id", row.id)
     .select("*")
     .single();
 
-  if (updateError || !updated) throw updateError ?? new Error("更新標誌路徑失敗");
+  if (updateError || !updated) {
+    await supabase.from("client_logos").delete().eq("id", row.id);
+    throw updateError ?? new Error("儲存標誌內容失敗");
+  }
+
   return updated as ClientLogoRecord;
 }
 
+/** Import legacy per-project base64 logos into the shared library. */
+async function syncLegacyProjectLogos(): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const { data: projects, error } = await supabase
+    .from("projects")
+    .select("id, name, logo_url, logo_id")
+    .is("logo_id", null)
+    .like("logo_url", "data:%");
+
+  if (error || !projects?.length) return;
+
+  for (const project of projects) {
+    const logoUrl = project.logo_url as string;
+    const parsed = parseDataUrl(logoUrl);
+    if (!parsed || !ALLOWED_LOGO_TYPES.has(parsed.mimeType)) continue;
+    if (parsed.buffer.byteLength > MAX_LOGO_BYTES) continue;
+
+    try {
+      const logo = await uploadClientLogo(
+        parsed.buffer,
+        parsed.mimeType,
+        (project.name as string) || null
+      );
+      await assignLogoToProject(project.id as number, logo.id);
+    } catch {
+      // Skip rows that fail migration and continue with others.
+    }
+  }
+}
+
 export async function listClientLogos(): Promise<ClientLogoListItem[]> {
+  await syncLegacyProjectLogos();
+
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("client_logos")
@@ -184,11 +203,16 @@ export async function getClientLogo(
 export async function readClientLogoBytes(
   logo: ClientLogoRecord
 ): Promise<Buffer | null> {
+  if (logo.storage_backend === "database" && logo.content_base64) {
+    return Buffer.from(logo.content_base64, "base64");
+  }
+
   if (logo.storage_backend === "supabase" || requiresRemoteStorage()) {
-    const remote = await readFromSupabase(logo.storage_path);
+    const remote = await readFromSupabaseStorage(logo.storage_path);
     if (remote) return remote;
     if (requiresRemoteStorage()) return null;
   }
+
   return readFromLocal(logo.storage_path);
 }
 
