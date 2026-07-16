@@ -36,6 +36,11 @@ function extensionForMime(mimeType: string): string {
   return EXT_BY_MIME[mimeType] ?? "bin";
 }
 
+/** Vercel/serverless has no writable project data directory. */
+function requiresRemoteStorage(): boolean {
+  return Boolean(process.env.VERCEL);
+}
+
 function localLogoDir(): string {
   return path.join(process.cwd(), "data", "client-logos");
 }
@@ -54,7 +59,7 @@ async function saveToSupabase(
   storagePath: string,
   buffer: Buffer,
   mimeType: string
-): Promise<boolean> {
+): Promise<void> {
   const supabase = getSupabaseAdmin();
   const { error } = await supabase.storage
     .from(LOGO_BUCKET)
@@ -62,7 +67,11 @@ async function saveToSupabase(
       contentType: mimeType,
       upsert: true,
     });
-  return !error;
+  if (error) {
+    throw new Error(
+      `Supabase Storage 上傳失敗：${error.message}。請在 Supabase 建立公開 bucket「${LOGO_BUCKET}」`
+    );
+  }
 }
 
 async function readFromSupabase(storagePath: string): Promise<Buffer | null> {
@@ -111,11 +120,18 @@ export async function uploadClientLogo(
   if (insertError || !row) throw insertError ?? new Error("建立標誌記錄失敗");
 
   const storagePath = `${row.id}.${extensionForMime(mimeType)}`;
-  const useSupabase = await saveToSupabase(storagePath, buffer, mimeType);
-  const storageBackend = useSupabase ? "supabase" : "local";
+  let storageBackend: ClientLogoRecord["storage_backend"];
 
-  if (!useSupabase) {
+  try {
+    await saveToSupabase(storagePath, buffer, mimeType);
+    storageBackend = "supabase";
+  } catch (error) {
+    if (requiresRemoteStorage()) {
+      await supabase.from("client_logos").delete().eq("id", row.id);
+      throw error;
+    }
     await saveToLocal(storagePath, buffer);
+    storageBackend = "local";
   }
 
   const { data: updated, error: updateError } = await supabase
@@ -168,9 +184,10 @@ export async function getClientLogo(
 export async function readClientLogoBytes(
   logo: ClientLogoRecord
 ): Promise<Buffer | null> {
-  if (logo.storage_backend === "supabase") {
+  if (logo.storage_backend === "supabase" || requiresRemoteStorage()) {
     const remote = await readFromSupabase(logo.storage_path);
     if (remote) return remote;
+    if (requiresRemoteStorage()) return null;
   }
   return readFromLocal(logo.storage_path);
 }
