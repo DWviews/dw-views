@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { getSupabaseAdmin } from "./supabase";
+import { formatDbError, toDbError } from "./db-error";
 import { logoPublicUrl, type ClientLogoListItem } from "./client-logo-url";
 
 export { logoPublicUrl, resolveProjectLogoUrl, isInlineLogoUrl } from "./client-logo-url";
@@ -116,7 +117,7 @@ export async function uploadClientLogo(
     .select("*")
     .single();
 
-  if (insertError || !row) throw insertError ?? new Error("建立標誌記錄失敗");
+  if (insertError || !row) throw toDbError(insertError, "建立標誌記錄失敗");
 
   const contentMeta = await saveLogoContent(row.id as number, buffer, mimeType);
 
@@ -129,7 +130,7 @@ export async function uploadClientLogo(
 
   if (updateError || !updated) {
     await supabase.from("client_logos").delete().eq("id", row.id);
-    throw updateError ?? new Error("儲存標誌內容失敗");
+    throw toDbError(updateError, "儲存標誌內容失敗");
   }
 
   return updated as ClientLogoRecord;
@@ -174,7 +175,7 @@ export async function listClientLogos(): Promise<ClientLogoListItem[]> {
     .select("id, label, mime_type, file_size, created_at")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toDbError(error, "無法載入標誌素材庫");
 
   return (data ?? []).map((row) => ({
     id: row.id as number,
@@ -196,7 +197,7 @@ export async function getClientLogo(
     .eq("id", logoId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toDbError(error, "無法載入標誌素材庫");
   return (data as ClientLogoRecord | null) ?? null;
 }
 
@@ -235,7 +236,7 @@ export async function assignLogoToProject(
     })
     .eq("id", projectId);
 
-  if (error) throw error;
+  if (error) throw toDbError(error, "無法套用標誌至專案");
   return logoId ? logoPublicUrl(logoId) : null;
 }
 

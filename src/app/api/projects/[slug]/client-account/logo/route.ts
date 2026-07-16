@@ -8,6 +8,7 @@ import {
   assignLogoToProject,
   uploadClientLogo,
 } from "@/lib/client-logos";
+import { formatDbError } from "@/lib/db-error";
 import {
   CLIENT_ACCOUNT_FIELDS,
   enrichClientAccount,
@@ -96,7 +97,7 @@ export async function POST(
       message: "品牌標誌已上傳並套用",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "設定失敗";
+    const message = formatDbError(error, "設定失敗");
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

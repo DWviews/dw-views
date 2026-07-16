@@ -7,6 +7,7 @@ import {
   toLogoListItem,
   uploadClientLogo,
 } from "@/lib/client-logos";
+import { formatDbError } from "@/lib/db-error";
 
 export async function GET() {
   const session = await getSession();
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
       message: "標誌已加入素材庫",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "上傳失敗";
+    const message = formatDbError(error, "上傳失敗");
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
