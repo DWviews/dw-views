@@ -1,4 +1,4 @@
-import { resolveProjectLogoUrl } from "@/lib/client-logos";
+import { resolveProjectLogoUrl } from "@/lib/client-logo-url";
 
 export interface ClientAccount {
   clientId: string | null;

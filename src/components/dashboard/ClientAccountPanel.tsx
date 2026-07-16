@@ -24,7 +24,7 @@ import {
   type ClientAccount,
   type ServiceTier,
 } from "@/lib/client-account";
-import type { ClientLogoListItem } from "@/lib/client-logos";
+import type { ClientLogoListItem } from "@/lib/client-logo-url";
 
 interface ClientAccountPanelProps {
   slug: string;

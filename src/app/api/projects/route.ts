@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
 import { seedDatabase } from "@/lib/seed";
 import { createProjectMonth } from "@/lib/project-months";
-import { resolveProjectLogoUrl } from "@/lib/client-logos";
+import { resolveProjectLogoUrl } from "@/lib/client-logo-url";
 
 const PROJECT_LIST_SELECT = [
   "id",
