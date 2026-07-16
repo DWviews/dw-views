@@ -33,6 +33,7 @@ yarn-error.log*
 
 # database
 /data/*.db
+/data/client-logos/
 
 # typescript
 *.tsbuildinfo

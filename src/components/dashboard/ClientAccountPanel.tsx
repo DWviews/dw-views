@@ -24,6 +24,7 @@ import {
   type ClientAccount,
   type ServiceTier,
 } from "@/lib/client-account";
+import type { ClientLogoListItem } from "@/lib/client-logos";
 
 interface ClientAccountPanelProps {
   slug: string;
@@ -56,6 +57,7 @@ export default function ClientAccountPanel({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoLibrary, setLogoLibrary] = useState<ClientLogoListItem[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -76,6 +78,18 @@ export default function ClientAccountPanel({
       })
       .finally(() => setLoading(false));
   }, [slug]);
+
+  async function loadLogoLibrary() {
+    const res = await fetch("/api/client-logos");
+    if (!res.ok) return;
+    const data = await res.json();
+    setLogoLibrary(data.logos || []);
+  }
+
+  useEffect(() => {
+    if (!canEdit) return;
+    loadLogoLibrary();
+  }, [canEdit]);
 
   async function handleSave() {
     setSaving(true);
@@ -125,8 +139,31 @@ export default function ClientAccountPanel({
       setAccount(data.account);
       setForm((prev) => ({ ...prev, logoUrl: data.account.logoUrl }));
       setMessage(data.message || "品牌標誌已上傳");
+      await loadLogoLibrary();
     } catch (err) {
       setError(err instanceof Error ? err.message : "上傳失敗");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
+  async function handleSelectExistingLogo(logoId: number) {
+    setUploadingLogo(true);
+    setMessage("");
+    setError("");
+    try {
+      const res = await fetch(apiProjectPath(slug, "client-account/logo"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "套用失敗");
+      setAccount(data.account);
+      setForm((prev) => ({ ...prev, logoUrl: data.account.logoUrl }));
+      setMessage(data.message || "已套用既有品牌標誌");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "套用失敗");
     } finally {
       setUploadingLogo(false);
     }
@@ -227,6 +264,8 @@ export default function ClientAccountPanel({
           saving={saving}
           onLogoUpload={handleLogoUpload}
           onLogoRemove={handleLogoRemove}
+          onSelectExistingLogo={handleSelectExistingLogo}
+          logoLibrary={logoLibrary}
           uploadingLogo={uploadingLogo}
         />
       ) : hasClientAccountData(account) ? (
@@ -283,6 +322,8 @@ function AdminForm({
   saving,
   onLogoUpload,
   onLogoRemove,
+  onSelectExistingLogo,
+  logoLibrary,
   uploadingLogo,
 }: {
   form: ClientAccount;
@@ -291,6 +332,8 @@ function AdminForm({
   saving: boolean;
   onLogoUpload: (file: File | null) => void;
   onLogoRemove: () => void;
+  onSelectExistingLogo: (logoId: number) => void;
+  logoLibrary: ClientLogoListItem[];
   uploadingLogo: boolean;
 }) {
   return (
@@ -411,42 +454,81 @@ function AdminForm({
         </Field>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-dashed border-[#dadce0] bg-[#fafbfc] px-3 py-2.5">
-        <div>
-          <div className="text-xs font-medium text-[#12377A]">品牌標誌</div>
-          <div className="text-[10px] text-[#858481]">
-            PNG / JPEG / WebP / SVG，最大 512 KB
+      <div className="rounded-lg border border-dashed border-[#dadce0] bg-[#fafbfc] px-3 py-3 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div className="text-xs font-medium text-[#12377A]">品牌標誌</div>
+            <div className="text-[10px] text-[#858481]">
+              可上傳新檔或選用素材庫既有標誌 · PNG / JPEG / WebP / SVG，最大 512 KB
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                className="hidden"
+                disabled={uploadingLogo}
+                onChange={(e) => {
+                  onLogoUpload(e.target.files?.[0] || null);
+                  e.target.value = "";
+                }}
+              />
+              <span className="inline-flex items-center gap-1 text-xs border border-[#12377A] text-[#12377A] px-3 py-1.5 rounded cursor-pointer hover:bg-[#e8f0fe]">
+                <ImagePlus size={12} />
+                {uploadingLogo ? "處理中..." : "上傳新標誌"}
+              </span>
+            </label>
+            {form.logoUrl && (
+              <button
+                type="button"
+                onClick={onLogoRemove}
+                disabled={uploadingLogo}
+                className="inline-flex items-center gap-1 text-xs text-[#d93025] border border-[#d93025] px-3 py-1.5 rounded disabled:opacity-50"
+              >
+                <Trash2 size={12} />
+                移除
+              </button>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="cursor-pointer">
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/svg+xml"
-              className="hidden"
-              disabled={uploadingLogo}
-              onChange={(e) => {
-                onLogoUpload(e.target.files?.[0] || null);
-                e.target.value = "";
-              }}
-            />
-            <span className="inline-flex items-center gap-1 text-xs border border-[#12377A] text-[#12377A] px-3 py-1.5 rounded cursor-pointer hover:bg-[#e8f0fe]">
-              <ImagePlus size={12} />
-              {uploadingLogo ? "處理中..." : "上傳標誌"}
-            </span>
-          </label>
-          {form.logoUrl && (
-            <button
-              type="button"
-              onClick={onLogoRemove}
-              disabled={uploadingLogo}
-              className="inline-flex items-center gap-1 text-xs text-[#d93025] border border-[#d93025] px-3 py-1.5 rounded disabled:opacity-50"
-            >
-              <Trash2 size={12} />
-              移除
-            </button>
-          )}
-        </div>
+
+        {logoLibrary.length > 0 && (
+          <div>
+            <div className="text-[10px] font-medium text-[#858481] mb-2">
+              選用既有標誌（共用素材，節省儲存與流量）
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {logoLibrary.map((logo) => {
+                const selected = form.logoUrl === logo.url;
+                return (
+                  <button
+                    key={logo.id}
+                    type="button"
+                    disabled={uploadingLogo}
+                    onClick={() => onSelectExistingLogo(logo.id)}
+                    className={`group relative flex flex-col items-center gap-1 rounded-lg border p-1.5 transition-colors disabled:opacity-50 ${
+                      selected
+                        ? "border-[#12377A] bg-[#e8f0fe]"
+                        : "border-[#dadce0] bg-white hover:border-[#3D8BC1]"
+                    }`}
+                    title={logo.label || `標誌 #${logo.id}`}
+                  >
+                    <img
+                      src={logo.url}
+                      alt={logo.label || `標誌 ${logo.id}`}
+                      className="w-10 h-10 object-contain rounded"
+                      loading="lazy"
+                    />
+                    <span className="text-[9px] text-[#858481] max-w-[56px] truncate">
+                      {logo.label || `#${logo.id}`}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <button

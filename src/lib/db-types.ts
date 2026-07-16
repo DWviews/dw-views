@@ -30,6 +30,7 @@ export interface ProjectRow {
   service_tier: "basic" | "professional" | "enterprise" | "custom" | null;
   contract_notes: string | null;
   logo_url: string | null;
+  logo_id: number | null;
   created_at: string;
   updated_at: string;
 }

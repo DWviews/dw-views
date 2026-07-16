@@ -1,3 +1,5 @@
+import { resolveProjectLogoUrl } from "@/lib/client-logos";
+
 export interface ClientAccount {
   clientId: string | null;
   companyName: string | null;
@@ -113,6 +115,18 @@ export function rowToClientAccount(
     contractNotes: (row.contract_notes as string | null) ?? null,
     logoUrl: (row.logo_url as string | null) ?? null,
   };
+}
+
+/** 將 DB 列轉為帳戶資料，並解析為可快取的標誌 URL（不含 base64） */
+export function enrichClientAccount(
+  row: Record<string, unknown>
+): ClientAccount {
+  const account = rowToClientAccount(row);
+  account.logoUrl = resolveProjectLogoUrl(
+    row.logo_id as number | null | undefined,
+    row.logo_url as string | null | undefined
+  );
+  return account;
 }
 
 export function clientAccountToDbUpdates(

@@ -5,12 +5,12 @@ import { getProjectBySlug } from "@/lib/project-report";
 import {
   CLIENT_ACCOUNT_FIELDS,
   clientAccountToDbUpdates,
-  rowToClientAccount,
+  enrichClientAccount,
   type ClientAccount,
   type ServiceTier,
 } from "@/lib/client-account";
 
-const ACCOUNT_SELECT = CLIENT_ACCOUNT_FIELDS.join(", ");
+const ACCOUNT_SELECT = [...CLIENT_ACCOUNT_FIELDS, "logo_id"].join(", ");
 
 async function loadAccount(slug: string) {
   const project = await getProjectBySlug(slug);
@@ -28,7 +28,7 @@ async function loadAccount(slug: string) {
 
   return {
     project,
-    account: rowToClientAccount(data as unknown as Record<string, unknown>),
+    account: enrichClientAccount(data as unknown as Record<string, unknown>),
   };
 }
 
@@ -118,7 +118,7 @@ export async function PATCH(
   if (error) throw error;
 
   return NextResponse.json({
-    account: rowToClientAccount(data as unknown as Record<string, unknown>),
+    account: enrichClientAccount(data as unknown as Record<string, unknown>),
     message: "客戶帳戶資料已儲存",
   });
 }

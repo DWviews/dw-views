@@ -3,6 +3,24 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
 import { seedDatabase } from "@/lib/seed";
 import { createProjectMonth } from "@/lib/project-months";
+import { resolveProjectLogoUrl } from "@/lib/client-logos";
+
+const PROJECT_LIST_SELECT = [
+  "id",
+  "name",
+  "slug",
+  "campaign_name",
+  "created_by",
+  "created_at",
+  "client_id",
+  "company_name",
+  "contract_start_date",
+  "contract_end_date",
+  "monthly_budget",
+  "account_manager",
+  "service_tier",
+  "logo_id",
+].join(", ");
 
 export async function GET() {
   const session = await getSession();
@@ -15,7 +33,7 @@ export async function GET() {
 
   const { data: projects, error } = await supabase
     .from("projects")
-    .select("*")
+    .select(PROJECT_LIST_SELECT)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -23,11 +41,11 @@ export async function GET() {
     return NextResponse.json({ projects: [] });
   }
 
-  const projectIds = projects.map((p) => p.id as number);
+  const projectIds = (projects as unknown as { id: number }[]).map((p) => p.id);
   const creatorIds = [
     ...new Set(
-      projects
-        .map((p) => p.created_by as number | null)
+      (projects as unknown as { created_by: number | null }[])
+        .map((p) => p.created_by)
         .filter((id): id is number => typeof id === "number")
     ),
   ];
@@ -71,7 +89,7 @@ export async function GET() {
   }
 
   const enriched = [];
-  for (const project of projects) {
+  for (const project of projects as unknown as Record<string, unknown>[]) {
     const entry = stats.get(project.id as number) ?? {
       monthCount: 0,
       visibleMonthCount: 0,
@@ -80,6 +98,10 @@ export async function GET() {
 
     enriched.push({
       ...project,
+      logo_url: resolveProjectLogoUrl(
+        project.logo_id as number | null,
+        null
+      ),
       creator_name: creatorMap.get(project.created_by as number),
       month_count: entry.monthCount,
       visible_month_count: entry.visibleMonthCount,
