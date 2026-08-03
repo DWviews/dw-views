@@ -201,7 +201,7 @@ const PDF_STYLES = `
     padding: 0;
     width: 297mm;
     height: 210mm;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, Helvetica, sans-serif;
     color: #333;
     background: #fff;
     -webkit-print-color-adjust: exact;
@@ -623,10 +623,13 @@ function buildSlideBodies(report: ReportData): string[] {
 
 function wrapSlideHtml(slideHtml: string): string {
   return `<!doctype html>
-  <html>
+  <html lang="zh-Hant">
     <head>
       <meta charset="utf-8" />
       <title>Monthly Report</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
       <style>${PDF_STYLES}</style>
     </head>
     <body>

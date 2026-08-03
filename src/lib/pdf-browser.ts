@@ -41,7 +41,13 @@ export async function renderHtmlToPdf(
   }
 ): Promise<Uint8Array> {
   await page.setContent(html, {
-    waitUntil: ["load", "domcontentloaded"],
+    waitUntil: ["load", "domcontentloaded", "networkidle0"],
+  });
+  await page.evaluate(async () => {
+    await Promise.race([
+      document.fonts.ready,
+      new Promise((resolve) => setTimeout(resolve, 8000)),
+    ]);
   });
   await page.emulateMediaType("print");
   const pdf = await page.pdf(options);
