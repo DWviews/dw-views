@@ -41,7 +41,7 @@ export async function renderHtmlToPdf(
   }
 ): Promise<Uint8Array> {
   await page.setContent(html, {
-    waitUntil: ["load", "domcontentloaded", "networkidle0"],
+    waitUntil: ["load", "domcontentloaded"],
   });
   await page.evaluate(async () => {
     await Promise.race([
