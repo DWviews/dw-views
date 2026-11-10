@@ -1,6 +1,9 @@
 import { getSupabaseAdmin } from "./supabase";
 import type { SessionUser } from "./auth";
-import type { MonthMetricsInput } from "./month-generator";
+import {
+  sameReportMonth,
+  type MonthMetricsInput,
+} from "./month-generator";
 import { getCsvFileCount } from "./csv-files";
 
 export interface ProjectMonthRecord {
@@ -277,18 +280,23 @@ export async function getLatestReadyMonth(
   return mapMonthRow(data, csvCount);
 }
 
+export async function listReportMonthLabels(
+  projectId: number
+): Promise<string[]> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("project_months")
+    .select("report_month")
+    .eq("project_id", projectId);
+
+  if (error) throw error;
+  return (data ?? []).map((row) => row.report_month as string);
+}
+
 export async function monthExistsForProject(
   projectId: number,
   reportMonth: string
 ): Promise<boolean> {
-  const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
-    .from("project_months")
-    .select("id")
-    .eq("project_id", projectId)
-    .eq("report_month", reportMonth)
-    .maybeSingle();
-
-  if (error) throw error;
-  return !!data;
+  const labels = await listReportMonthLabels(projectId);
+  return labels.some((label) => sameReportMonth(label, reportMonth));
 }

@@ -9,10 +9,14 @@ import {
   refreshMonthStatus,
   setMetricOverrides,
   monthExistsForProject,
+  listReportMonthLabels,
 } from "@/lib/project-months";
 import {
   generateNextMonthData,
+  latestReportMonthLabel,
   metricsFromCampaign,
+  nextReportMonthLabel,
+  sameReportMonth,
   validateGeneratedMetrics,
 } from "@/lib/month-generator";
 import { getCsvFileContent, insertMonthCsvFiles } from "@/lib/csv-files";
@@ -60,11 +64,25 @@ export async function POST(
     sourceFiles[type] = content;
   }
 
+  const latestLabel = latestReportMonthLabel(
+    await listReportMonthLabels(project.id)
+  );
+  if (latestLabel && !sameReportMonth(sourceMonth.report_month, latestLabel)) {
+    return NextResponse.json(
+      {
+        error: `新報告必須接在最新月份之後。請選擇 ${latestLabel} 再生成下一個月。`,
+      },
+      { status: 400 }
+    );
+  }
+
+  const targetReportMonth = nextReportMonthLabel(sourceMonth.report_month);
   const generated = generateNextMonthData(
     sourceFiles,
     project.campaign_name,
     sourceMonth.report_month,
-    sourceMonth.report_date_range
+    null,
+    targetReportMonth
   );
 
   const duplicate = await monthExistsForProject(

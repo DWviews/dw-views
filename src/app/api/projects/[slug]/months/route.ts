@@ -4,8 +4,13 @@ import { getProjectBySlug } from "@/lib/project-report";
 import {
   createProjectMonth,
   listProjectMonths,
+  listReportMonthLabels,
   monthExistsForProject,
 } from "@/lib/project-months";
+import {
+  dateRangeForReportMonth,
+  upcomingReportMonthLabel,
+} from "@/lib/month-generator";
 
 export async function GET(
   _request: NextRequest,
@@ -41,14 +46,19 @@ export async function POST(
     return NextResponse.json({ error: "專案不存在" }, { status: 404 });
   }
 
-  const { reportMonth, reportDateRange } = await request.json();
-  if (!reportMonth) {
-    return NextResponse.json({ error: "請填寫報告月份" }, { status: 400 });
-  }
+  await request.json().catch(() => ({}));
+
+  const reportMonth = upcomingReportMonthLabel(
+    await listReportMonthLabels(project.id)
+  );
+  const reportDateRange = dateRangeForReportMonth(reportMonth);
 
   const exists = await monthExistsForProject(project.id, reportMonth);
   if (exists) {
-    return NextResponse.json({ error: "此月份已存在" }, { status: 409 });
+    return NextResponse.json(
+      { error: `${reportMonth} 已存在，無法重複建立` },
+      { status: 409 }
+    );
   }
 
   const month = await createProjectMonth(

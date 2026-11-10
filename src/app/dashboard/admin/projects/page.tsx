@@ -18,6 +18,10 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { apiProjectPath, projectPagePath } from "@/lib/project-api";
+import {
+  dateRangeForReportMonth,
+  upcomingReportMonthLabel,
+} from "@/lib/month-generator";
 import ClientAccountPanel from "@/components/dashboard/ClientAccountPanel";
 import DashboardHomeLink from "@/components/dashboard/DashboardHomeLink";
 
@@ -67,8 +71,6 @@ export default function AdminProjectsPage() {
   const [showCreateMonth, setShowCreateMonth] = useState(false);
   const [newName, setNewName] = useState("");
   const [newCampaign, setNewCampaign] = useState("");
-  const [newMonth, setNewMonth] = useState("");
-  const [newMonthLabel, setNewMonthLabel] = useState("");
   const [files, setFiles] = useState<Record<string, File | null>>({});
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -193,7 +195,6 @@ export default function AdminProjectsPage() {
       body: JSON.stringify({
         name: newName,
         campaignName: newCampaign,
-        reportMonth: newMonth,
       }),
     });
     const data = await res.json();
@@ -203,19 +204,22 @@ export default function AdminProjectsPage() {
     }
     setShowCreate(false);
     setNewName("");
+    setNewCampaign("");
     setSelectedSlug(data.project.slug);
     setSelectedMonthId(data.month?.id ?? null);
     fetchProjects();
     fetchMonths(data.project.slug);
+    setMessage(
+      `已建立專案，首個報告為 ${data.month?.report_month}（${data.month?.report_date_range}）`
+    );
   }
 
-  async function handleCreateMonth(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleCreateMonth() {
     if (!selectedSlug) return;
     const res = await fetch(apiProjectPath(selectedSlug, "months"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reportMonth: newMonthLabel }),
+      body: JSON.stringify({}),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -223,10 +227,11 @@ export default function AdminProjectsPage() {
       return;
     }
     setShowCreateMonth(false);
-    setNewMonthLabel("");
     setSelectedMonthId(data.month.id);
     fetchMonths(selectedSlug);
-    setMessage(`已新增月份 ${data.month.report_month}`);
+    setMessage(
+      `已新增 ${data.month.report_month}（${data.month.report_date_range}）`
+    );
   }
 
   async function handleUpload() {
@@ -251,7 +256,9 @@ export default function AdminProjectsPage() {
       return;
     }
 
-    setMessage(`已上傳 ${data.uploaded.join(", ")}.csv — 共 ${data.csvCount}/6 檔案`);
+    setMessage(
+      `已上傳 ${data.uploaded.join(", ")}.csv — 共 ${data.csvCount}/6 檔案。專案名稱、活動名稱與日期範圍維持不變。`
+    );
     setFiles({});
     fetchMonths(selectedSlug);
   }
@@ -560,6 +567,12 @@ export default function AdminProjectsPage() {
 
   const selected = projects.find((p) => p.slug === selectedSlug);
   const selectedMonth = months.find((m) => m.id === selectedMonthId);
+  const firstReportMonth = upcomingReportMonthLabel([]);
+  const firstReportRange = dateRangeForReportMonth(firstReportMonth);
+  const nextReportMonth = upcomingReportMonthLabel(
+    months.map((month) => month.report_month)
+  );
+  const nextReportRange = dateRangeForReportMonth(nextReportMonth);
   const randomSourceMonth = months.find((m) => m.id === randomSourceMonthId);
   const readySourceMonths = months.filter((m) => (m.csv_count ?? 0) >= 6);
 
@@ -625,11 +638,13 @@ export default function AdminProjectsPage() {
           className="bg-white border border-[#dadce0] rounded-lg p-5 mb-6"
         >
           <h3 className="text-sm font-semibold text-[#12377A] mb-3">建立新專案</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             <input className="gads-input" placeholder="專案名稱" value={newName} onChange={(e) => setNewName(e.target.value)} required />
             <input className="gads-input" placeholder="廣告活動名稱" value={newCampaign} onChange={(e) => setNewCampaign(e.target.value)} />
-            <input className="gads-input" placeholder="首個報告月份" value={newMonth} onChange={(e) => setNewMonth(e.target.value)} />
           </div>
+          <p className="text-xs text-[#858481] mb-3">
+            首個報告月份固定為 {firstReportMonth}（{firstReportRange}）。之後每份新報告都是上一個月的下一個月，上傳 CSV 不會改名稱或日期範圍。
+          </p>
           <div className="flex gap-2">
             <button type="submit" className="gads-btn-primary text-sm">建立</button>
             <button type="button" onClick={() => setShowCreate(false)} className="gads-btn-outline text-sm">取消</button>
@@ -681,16 +696,31 @@ export default function AdminProjectsPage() {
               </div>
 
               {showCreateMonth && (
-                <form onSubmit={handleCreateMonth} className="mb-3 flex gap-2">
-                  <input
-                    className="gads-input flex-1"
-                    placeholder="例如 July 2026"
-                    value={newMonthLabel}
-                    onChange={(e) => setNewMonthLabel(e.target.value)}
-                    required
-                  />
-                  <button type="submit" className="gads-btn-primary text-xs px-3">新增</button>
-                </form>
+                <div className="mb-3 rounded-lg border border-[#dadce0] bg-[#F2F9FC] p-3">
+                  <p className="text-xs text-[#12377A] mb-2">
+                    新報告固定為下一個月：
+                    <span className="font-semibold"> {nextReportMonth}</span>
+                  </p>
+                  <p className="text-xs text-[#858481] mb-3">
+                    日期範圍 {nextReportRange}。CSV 裡的日子不會改這個範圍。
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCreateMonth}
+                      className="gads-btn-primary text-xs px-3"
+                    >
+                      建立
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateMonth(false)}
+                      className="gads-btn-outline text-xs px-3"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </div>
               )}
 
               <div className="space-y-2">
@@ -795,6 +825,9 @@ export default function AdminProjectsPage() {
                   </div>
                 </div>
                 <button onClick={handleMetaSave} className="mt-3 gads-btn-outline text-sm">儲存設定</button>
+                <p className="text-xs text-[#858481] mt-2">
+                  上傳 CSV 只更新績效數字，不會改專案名稱、廣告活動名稱或日期範圍。
+                </p>
               </div>
 
               <div className="mb-5 rounded-lg bg-[#fff8e1] border border-[#fbbc04] p-4">
@@ -1010,6 +1043,9 @@ export default function AdminProjectsPage() {
               </div>
 
               <div className="space-y-3">
+                <p className="text-xs text-[#858481]">
+                  檔案中的活動名稱與日期只供讀取績效，不會寫回專案或這份報告的月份範圍。
+                </p>
                 {Object.entries(CSV_LABELS).map(([type, label]) => (
                   <div key={type} className="flex items-center gap-3">
                     <span className="font-mono text-sm text-[#12377A] w-16 shrink-0">{type}.csv</span>

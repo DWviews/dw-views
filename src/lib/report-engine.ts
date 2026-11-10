@@ -4,6 +4,7 @@ import {
   formatCurrency,
   formatPercent,
 } from "./csv-parser";
+import { dateRangeForReportMonth } from "./month-generator";
 
 export interface ReportData {
   project: {
@@ -106,7 +107,8 @@ export function generateReport(
   parsed: ParsedCSVs
 ): ReportData {
   const c = parsed.campaign;
-  const dateRange = reportDateRange || c?.dateRange || reportMonth;
+  const dateRange =
+    reportDateRange?.trim() || dateRangeForReportMonth(reportMonth);
 
   const totalClicks = c?.clicks || parsed.devices.reduce((s, d) => s + d.clicks, 0);
   const totalImpressions =

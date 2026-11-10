@@ -3,6 +3,10 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
 import { seedDatabase } from "@/lib/seed";
 import { createProjectMonth } from "@/lib/project-months";
+import {
+  dateRangeForReportMonth,
+  upcomingReportMonthLabel,
+} from "@/lib/month-generator";
 import { resolveProjectLogoUrl } from "@/lib/client-logo-url";
 
 const PROJECT_LIST_SELECT = [
@@ -121,7 +125,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "無權限" }, { status: 403 });
   }
 
-  const { name, campaignName, reportMonth } = await request.json();
+  const { name, campaignName } = await request.json();
   if (!name) {
     return NextResponse.json({ error: "請填寫專案名稱" }, { status: 400 });
   }
@@ -142,9 +146,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "專案名稱已存在" }, { status: 409 });
   }
 
-  const monthLabel =
-    reportMonth ||
-    new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const monthLabel = upcomingReportMonthLabel([]);
+  const reportDateRange = dateRangeForReportMonth(monthLabel);
 
   const { data: project, error } = await supabase
     .from("projects")
@@ -160,7 +163,11 @@ export async function POST(request: NextRequest) {
 
   if (error) throw error;
 
-  const month = await createProjectMonth(project.id, monthLabel);
+  const month = await createProjectMonth(
+    project.id,
+    monthLabel,
+    reportDateRange
+  );
 
   return NextResponse.json({ project, month });
 }

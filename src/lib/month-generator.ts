@@ -135,29 +135,99 @@ function scaleRows<T extends { impressions: number }>(
   return scaled;
 }
 
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
+
+const MONTH_INDEX: Record<string, number> = Object.fromEntries(
+  MONTH_NAMES.map((name, index) => [name.toLowerCase(), index])
+);
+
+interface YearMonth {
+  year: number;
+  monthIndex: number;
+}
+
 export function parseReportMonthLabel(label: string): Date | null {
-  const parsed = Date.parse(`${label} 1`);
-  if (!Number.isNaN(parsed)) return new Date(parsed);
+  const parsed = parseYearMonth(label);
+  if (parsed) return new Date(Date.UTC(parsed.year, parsed.monthIndex, 1));
+  const fallback = Date.parse(`${label} 1`);
+  if (!Number.isNaN(fallback)) return new Date(fallback);
   return null;
 }
 
-export function nextReportMonthLabel(current: string): string {
-  const date = parseReportMonthLabel(current);
-  if (!date) {
-    const now = new Date();
-    now.setMonth(now.getMonth() + 1);
-    return now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+function parseYearMonth(label: string): YearMonth | null {
+  const match = label.trim().match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (!match) return null;
+  const monthIndex = MONTH_INDEX[match[1].toLowerCase()];
+  const year = Number(match[2]);
+  if (monthIndex === undefined || !Number.isFinite(year)) return null;
+  return { year, monthIndex };
+}
+
+function yearMonthFromDate(date: Date | null): YearMonth | null {
+  if (!date) return null;
+  return { year: date.getUTCFullYear(), monthIndex: date.getUTCMonth() };
+}
+
+function formatYearMonth(year: number, monthIndex: number): string {
+  const date = new Date(Date.UTC(year, monthIndex, 1));
+  return `${MONTH_NAMES[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
+function formatMonthRange(year: number, monthIndex: number): string {
+  const cursor = new Date(Date.UTC(year, monthIndex, 1));
+  const monthName = MONTH_NAMES[cursor.getUTCMonth()];
+  const rangeYear = cursor.getUTCFullYear();
+  const lastDay = new Date(Date.UTC(rangeYear, cursor.getUTCMonth() + 1, 0)).getUTCDate();
+  return `${monthName} 1, ${rangeYear} - ${monthName} ${lastDay}, ${rangeYear}`;
+}
+
+/** Calendar year/month in Hong Kong, so server and browser agree on "next month". */
+function hongKongYearMonth(date = new Date()): YearMonth {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Hong_Kong",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(date);
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  if (!Number.isFinite(year) || !Number.isFinite(month)) {
+    return { year: date.getFullYear(), monthIndex: date.getMonth() };
   }
-  date.setMonth(date.getMonth() + 1);
-  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  return { year, monthIndex: month - 1 };
+}
+
+function resolveYearMonth(label: string | null | undefined): YearMonth | null {
+  if (!label?.trim()) return null;
+  return parseYearMonth(label) ?? yearMonthFromDate(parseReportMonthLabel(label));
+}
+
+export function nextReportMonthLabel(current: string): string {
+  const parsed = resolveYearMonth(current);
+  if (!parsed) {
+    const now = hongKongYearMonth();
+    return formatYearMonth(now.year, now.monthIndex + 1);
+  }
+  return formatYearMonth(parsed.year, parsed.monthIndex + 1);
 }
 
 /** Calendar month immediately before the given report month label (e.g. July 2026 → June 2026). */
 export function previousReportMonthLabel(current: string): string | null {
-  const date = parseReportMonthLabel(current);
-  if (!date) return null;
-  date.setMonth(date.getMonth() - 1);
-  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const parsed = resolveYearMonth(current);
+  if (!parsed) return null;
+  return formatYearMonth(parsed.year, parsed.monthIndex - 1);
 }
 
 export function sameReportMonth(
@@ -166,26 +236,51 @@ export function sameReportMonth(
 ): boolean {
   if (!a || !b) return false;
   if (a.trim() === b.trim()) return true;
-  const da = parseReportMonthLabel(a);
-  const db = parseReportMonthLabel(b);
+  const da = resolveYearMonth(a);
+  const db = resolveYearMonth(b);
   if (!da || !db) return false;
-  return (
-    da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth()
-  );
+  return da.year === db.year && da.monthIndex === db.monthIndex;
+}
+
+/** Full calendar range for a report month. Ignores any dates found in CSV files. */
+export function dateRangeForReportMonth(label: string | null | undefined): string {
+  const parsed = resolveYearMonth(label);
+  if (parsed) return formatMonthRange(parsed.year, parsed.monthIndex);
+  const now = hongKongYearMonth();
+  return formatMonthRange(now.year, now.monthIndex);
+}
+
+export function latestReportMonthLabel(existingLabels: string[]): string | null {
+  let best: YearMonth & { label: string } | null = null;
+  for (const label of existingLabels) {
+    const parsed = resolveYearMonth(label);
+    if (!parsed) continue;
+    if (
+      !best ||
+      parsed.year > best.year ||
+      (parsed.year === best.year && parsed.monthIndex > best.monthIndex)
+    ) {
+      best = { ...parsed, label };
+    }
+  }
+  return best?.label ?? null;
+}
+
+/** Next report is the month after the latest one, or next calendar month when none exist. */
+export function upcomingReportMonthLabel(existingLabels: string[]): string {
+  const latest = latestReportMonthLabel(existingLabels);
+  if (!latest) {
+    const now = hongKongYearMonth();
+    return formatYearMonth(now.year, now.monthIndex + 1);
+  }
+  return nextReportMonthLabel(latest);
 }
 
 export function nextDateRangeLabel(current: string | null | undefined): string {
-  const date = current ? parseReportMonthLabel(current) : null;
-  const base = date || new Date();
-  const start = new Date(base.getFullYear(), base.getMonth() + 1, 1);
-  const end = new Date(base.getFullYear(), base.getMonth() + 2, 0);
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  return `${fmt(start)} - ${fmt(end)}`;
+  if (!current?.trim()) {
+    return dateRangeForReportMonth(upcomingReportMonthLabel([]));
+  }
+  return dateRangeForReportMonth(nextReportMonthLabel(current));
 }
 
 export interface GeneratedMonthData {
@@ -316,7 +411,7 @@ function campaignFromMetrics(
     ctr,
     convRate,
     conversions,
-    dateRange: dateRange || base?.dateRange || "",
+    dateRange,
   };
 }
 
@@ -769,7 +864,7 @@ export function applyMetricsUpdate(
   const oldImpressions = base.campaign?.impressions ?? 0;
   const campaign: CampaignData = {
     campaign: campaignName || base.campaign?.campaign || "Campaign",
-    dateRange: dateRange || base.campaign?.dateRange || dateRange,
+    dateRange,
     clicks: roundInt(metrics.clicks),
     impressions: roundInt(metrics.impressions),
     ctr: round2(metrics.ctr),
@@ -843,7 +938,8 @@ export function generateRandomizedMonthData(
 
   const similarityPct = normalizeSimilarityPct(options.similarityPct);
   const enabled = new Set(options.sections?.length ? options.sections : RANDOMIZE_SECTIONS);
-  const dateRange = reportDateRange || base.campaign.dateRange || reportMonth;
+  const dateRange =
+    reportDateRange?.trim() || dateRangeForReportMonth(reportMonth);
   const campaign = campaignFromMetrics(
     base.campaign,
     campaignName,
@@ -894,15 +990,17 @@ export function generateNextMonthData(
   sourceFiles: Record<string, string>,
   campaignName: string,
   sourceReportMonth: string,
-  sourceDateRange?: string | null
+  _sourceDateRange?: string | null,
+  targetReportMonth?: string
 ): GeneratedMonthData {
   const base = parseAllCSVs(sourceFiles);
   if (!base.campaign) {
     throw new Error("來源月份缺少 01.csv 活動績效資料");
   }
 
-  const reportMonth = nextReportMonthLabel(sourceReportMonth);
-  const reportDateRange = nextDateRangeLabel(sourceReportMonth);
+  const reportMonth =
+    targetReportMonth?.trim() || nextReportMonthLabel(sourceReportMonth);
+  const reportDateRange = dateRangeForReportMonth(reportMonth);
 
   const campaign = generateCampaign(
     base.campaign,

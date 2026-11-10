@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
-import { parse01 } from "@/lib/csv-parser";
 import {
   getProjectMonthForProject,
   refreshMonthStatus,
 } from "@/lib/project-months";
+import { dateRangeForReportMonth } from "@/lib/month-generator";
 import { getProjectBySlug } from "@/lib/project-report";
 
 const VALID_TYPES = ["01", "02", "03", "04", "05", "06"];
@@ -59,20 +59,16 @@ export async function POST(
     if (error) throw error;
 
     uploaded.push(fileType);
+  }
 
-    if (fileType === "01") {
-      const campaign = parse01(content);
-      if (campaign) {
-        await supabase
-          .from("projects")
-          .update({ campaign_name: campaign.campaign })
-          .eq("id", project.id);
-        await supabase
-          .from("project_months")
-          .update({ report_date_range: campaign.dateRange })
-          .eq("id", month.id);
-      }
-    }
+  if (!month.report_date_range?.trim()) {
+    const { error: rangeError } = await supabase
+      .from("project_months")
+      .update({
+        report_date_range: dateRangeForReportMonth(month.report_month),
+      })
+      .eq("id", month.id);
+    if (rangeError) throw rangeError;
   }
 
   await refreshMonthStatus(month.id);
