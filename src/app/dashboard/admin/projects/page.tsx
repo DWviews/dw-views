@@ -62,6 +62,20 @@ const RANDOMIZE_SECTIONS = [
   "dailyTrend",
 ];
 
+function csvTypeFromName(name: string): string | null {
+  const base = (name.split(/[/\\]/).pop() ?? name).trim();
+  const patterns = [
+    /^0([1-6])\.csv$/i,
+    /^0([1-6])[^0-9].*\.csv$/i,
+    /(?:^|[^0-9])0([1-6])\.csv$/i,
+  ];
+  for (const pattern of patterns) {
+    const match = base.match(pattern);
+    if (match) return `0${match[1]}`;
+  }
+  return null;
+}
+
 export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
@@ -234,13 +248,17 @@ export default function AdminProjectsPage() {
     );
   }
 
-  async function handleUpload() {
+  async function handleUpload(
+    override?: Record<string, File | null>,
+    skipped: string[] = []
+  ) {
     if (!selectedSlug || !selectedMonthId) return;
+    const source = override ?? files;
     setUploading(true);
     setMessage("");
 
     const formData = new FormData();
-    for (const [type, file] of Object.entries(files)) {
+    for (const [type, file] of Object.entries(source)) {
       if (file) formData.append(`file_${type}`, file);
     }
 
@@ -256,11 +274,35 @@ export default function AdminProjectsPage() {
       return;
     }
 
+    const skippedNote = skipped.length
+      ? ` 未能辨識：${skipped.join("、")}（檔名需為 01.csv–06.csv）。`
+      : "";
     setMessage(
-      `已上傳 ${data.uploaded.join(", ")}.csv — 共 ${data.csvCount}/6 檔案。專案名稱、活動名稱與日期範圍維持不變。`
+      `已上傳 ${data.uploaded.join(", ")}.csv — 共 ${data.csvCount}/6 檔案。專案名稱、活動名稱與日期範圍維持不變。${skippedNote}`
     );
     setFiles({});
     fetchMonths(selectedSlug);
+  }
+
+  async function handleMultiCsv(list: FileList | null) {
+    if (!selectedSlug || !selectedMonthId || !list?.length || uploading) return;
+    const mapped: Record<string, File> = {};
+    const skipped: string[] = [];
+    for (const file of Array.from(list)) {
+      const type = csvTypeFromName(file.name);
+      if (!type) {
+        skipped.push(file.name);
+        continue;
+      }
+      mapped[type] = file;
+    }
+    if (Object.keys(mapped).length === 0) {
+      setMessage("請選擇檔名為 01.csv 到 06.csv 的檔案，才能一次上載。");
+      return;
+    }
+    const next = { ...files, ...mapped };
+    setFiles(next);
+    await handleUpload(next, skipped);
   }
 
   async function handleMetaSave() {
@@ -1044,8 +1086,24 @@ export default function AdminProjectsPage() {
 
               <div className="space-y-3">
                 <p className="text-xs text-[#858481]">
-                  檔案中的活動名稱與日期只供讀取績效，不會寫回專案或這份報告的月份範圍。
+                  檔案中的活動名稱與日期只供讀取績效，不會寫回專案或這份報告的月份範圍。可一次多選 01.csv–06.csv，選好後直接上載。
                 </p>
+                <label className={`block ${uploading ? "pointer-events-none opacity-50" : "cursor-pointer"}`}>
+                  <input
+                    type="file"
+                    accept=".csv,text/csv"
+                    multiple
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      void handleMultiCsv(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                  <div className="border border-dashed border-[#12377A] rounded px-3 py-3 text-sm text-[#12377A] hover:bg-[#F2F9FC]">
+                    一次選擇 01.csv–06.csv 並上載
+                  </div>
+                </label>
                 {Object.entries(CSV_LABELS).map(([type, label]) => (
                   <div key={type} className="flex items-center gap-3">
                     <span className="font-mono text-sm text-[#12377A] w-16 shrink-0">{type}.csv</span>
